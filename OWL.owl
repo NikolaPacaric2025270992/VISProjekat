@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<rdf:RDF xmlns="http://www.vbis.org/ontology#"
+    xml:base="http://www.vbis.org/ontology"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+
+    <owl:Ontology rdf:about="http://www.vbis.org/ontology"/>
+
+    <!-- Class -->
+    <owl:Class rdf:about="#Student"/>
+    <owl:Class rdf:about="#Oglas"/>
+    <owl:Class rdf:about="#Vestina"/>
+    <owl:Class rdf:about="#Predmet"/>
+    <owl:Class rdf:about="#Ispit"/>
+    <owl:Class rdf:about="#Predavac"/>
+    <owl:Class rdf:about="ProgramStudiranja"/>
+    <owl:Class rdf:about="Agencija"/>
+
+    <!-- Property -->
+    <owl:ObjectProperty rdf:about="#imaVestinu">
+        <rdfs:domain rdf:resouce="#Student"/>
+        <rdfs:range rdf:resource="#Vestina"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#zahtevaVestinu">
+        <rdfs:domain rdf:resource="#Oglas"/>
+        <rdfs:range rdf:resource="#Vestina"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#polozioIspit">
+        <rdfs:domain rdf:resource="#Student"/>
+        <rdfs:range rdf:resource="#Ispit"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#ispitZaPredmet">
+        <rdfs:domain rdf:resource="#Ispit"/>
+        <rdfs:range rdf:resource="#Predmet"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#dajeVestinu">
+        <rdfs:domain rdf:resource="#Predmet"/>
+        <rdfs:range rdf:resource="#Vestina"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#predaje">
+        <rdfs:domain rdf:resource="#Predavac"/>
+        <rdfs:range rdf:resource="#Predmet"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="strucnjakZa">
+        <rdfs:domain rdf:resource="#Predmet"/>
+        <rdfs:range rdf:resource="#Vestina"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#pohadjaPredmet">
+        <rdfs:domain rdf:resource="#Student"/>
+        <rdfs:range rdf:resource="#ProgramStudiranja"/>
+    </owl:ObjectProperty>
+
+    <owl:ObjectProperty rdf:about="#postavljenOd">
+        <rdfs:domain rdf:resource="#Oglas"/>
+        <rdfs:range rdf:resource="#Agencija"/>
+    </owl:ObjectProperty>
+
+    <!-- Type Property-->
+    <owl:DatatypeProperty rdf:about="#ocena">
+        <rdfs:domain rdf:resource="#Ispit"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#nivoVestine">
+        <rdfs:domain rdf:resource="#Vestina"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+
+    <owl:DatatypeProperty rdf:about="#prioritet">
+        <rdfs:domain rdf:resource="#Vestina"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+</rdf:RDF>

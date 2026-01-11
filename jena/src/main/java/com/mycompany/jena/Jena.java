@@ -90,5 +90,32 @@ public class Jena {
         } catch (Exception e){
             e.printStackTrace();
         }
+        
+        System.out.println("\n--- Citanje RDF nazad ---");
+        
+        Model imported = ModelFactory.createDefaultModel();
+        imported.read("export.rdf");
+        ResIterator studenti = imported.listResourcesWithProperty(
+                RDF.type,
+                imported.getResource("http://www.vbis.org/ontology#Student"));
+        
+        while (studenti.hasNext()){
+            Resource stRDF = studenti.next();
+            System.out.println("Student: "+ stRDF.getLocalName());
+        }
+        
+        System.out.println("\n--- Citanje JSON nazad ---");
+        
+        Model jsonModel = ModelFactory.createDefaultModel();
+        jsonModel.read("file:export.json", null, "RDF/JSON");
+        ResIterator studentiJSON = jsonModel.listResourcesWithProperty(
+                RDF.type,
+                jsonModel.getResource("http://www.vbis.org/ontology#Student"));
+        
+        while (studentiJSON.hasNext()){
+            System.out.println("JSON student: "+ 
+                    studentiJSON.next().getLocalName());
+        }
+        
     }
 }

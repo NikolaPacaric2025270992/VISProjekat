@@ -104,7 +104,7 @@
      ] ,
     "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
       "type" : "bnode" ,
-      "value" : "_:8b58ac20f10e913ed3e7dad98c3c45d6"
+      "value" : "_:f36574beac87c0ea5e20f02884f76f9d"
     }
      ] ,
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
@@ -146,14 +146,6 @@
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
       "type" : "uri" ,
       "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
-    }
-     ]
-  }
-   ,
-  "_:8b58ac20f10e913ed3e7dad98c3c45d6" : { 
-    "http://www.w3.org/1999/02/22-rdf-syntax-ns#resouce" : [ { 
-      "type" : "literal" ,
-      "value" : "#Student"
     }
      ]
   }
@@ -240,6 +232,14 @@
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
       "type" : "uri" ,
       "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "_:f36574beac87c0ea5e20f02884f76f9d" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#resouce" : [ { 
+      "type" : "literal" ,
+      "value" : "#Student"
     }
      ]
   }

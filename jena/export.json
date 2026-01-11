@@ -1,0 +1,382 @@
+{ 
+  "http://www.vbis.org/ontology#ocena" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2001/XMLSchema#int"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Ispit"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#DatatypeProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#ispitZaPredmet" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Predmet"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Ispit"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#Predmet" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#Class"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#JuniorDeveloper" : { 
+    "http://www.vbis.org/ontology#zahtevaVestinu" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Java"
+    }
+    , { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#React"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Oglas"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/strucnjakZa" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Predmet"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#pohadjaPredmet" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#ProgramStudiranja"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Student"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#imaVestinu" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "bnode" ,
+      "value" : "_:8b58ac20f10e913ed3e7dad98c3c45d6"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#dajeVestinu" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Predmet"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#postavljenOd" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Agencija"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Oglas"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "_:8b58ac20f10e913ed3e7dad98c3c45d6" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#resouce" : [ { 
+      "type" : "literal" ,
+      "value" : "#Student"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#React" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/Agencija" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#Class"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#nivoVestine" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2001/XMLSchema#string"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#DatatypeProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#predaje" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Predmet"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Predavac"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#Java" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#Student" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#Class"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#polozioIspit" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Ispit"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Student"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#prioritet" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2001/XMLSchema#string"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#DatatypeProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#zahtevaVestinu" : { 
+    "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
+    }
+     ] ,
+    "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Oglas"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#ObjectProperty"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#Ispit" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#Class"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#Oglas" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#Class"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#Predavac" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#Class"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#Vestina" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#Class"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#IspitWeb" : { 
+    "http://www.vbis.org/ontology#ispitZaPredmet" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#WebProgramiranje"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Ispit"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#WebProgramiranje" : { 
+    "http://www.vbis.org/ontology#dajeVestinu" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Java"
+    }
+    , { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#React"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Predmet"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#Ontology"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ProgramStudiranja" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.w3.org/2002/07/owl#Class"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#Nikola" : { 
+    "http://www.vbis.org/ontology#imaVestinu" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Java"
+    }
+    , { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#React"
+    }
+     ] ,
+    "http://www.vbis.org/ontology#polozioIspit" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#IspitWeb"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Student"
+    }
+     ]
+  }
+}

@@ -4,6 +4,7 @@
 
 package com.mycompany.jena;
 
+import java.io.FileOutputStream;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
@@ -70,6 +71,24 @@ public class Jena {
         try (QueryExecution exe = QueryExecutionFactory.create(q, model)){
             ResultSet rs = exe.execSelect();
             ResultSetFormatter.out(System.out, rs);
+        }
+        
+        try {
+            FileOutputStream rdfExport = new FileOutputStream("export.rdf");
+            model.write(rdfExport, "RDF/XML");
+            rdfExport.close();
+            System.out.println("RDF exportovan u export.rdf");
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        
+        try {
+            FileOutputStream jsonExport = new FileOutputStream("export.json");
+            model.write(jsonExport, "RDF/JSON");
+            jsonExport.close();
+            System.out.print("JSON exportovan u export.json");
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 }

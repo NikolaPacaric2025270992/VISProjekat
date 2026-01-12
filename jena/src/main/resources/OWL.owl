@@ -73,11 +73,11 @@
 
     <owl:DatatypeProperty rdf:about="#nivoVestine">
         <rdfs:domain rdf:resource="#Vestina"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
     </owl:DatatypeProperty>
 
     <owl:DatatypeProperty rdf:about="#prioritet">
         <rdfs:domain rdf:resource="#Vestina"/>
-        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
     </owl:DatatypeProperty>
 </rdf:RDF>

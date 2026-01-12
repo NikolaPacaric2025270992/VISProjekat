@@ -4,6 +4,9 @@
 
 package com.mycompany.jena;
 
+import com.arangodb.ArangoDB;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
 import java.io.FileOutputStream;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
@@ -23,6 +26,20 @@ public class Jena {
 
     public static void main(String[] args) {
         String NS = "http://www.vbis.org/ontology#";
+        
+        ArangoDB arangoDB = new ArangoDB.Builder()
+                .host("127.0.0.1", 8529)
+                .user("root")
+                .password("")
+                .build();
+        
+        ArangoDatabase db = arangoDB.db("projekat");
+        if (!db.exists()) {
+            arangoDB.createDatabase("projekat");
+            db = arangoDB.db("projekat");
+        }
+        if (!db.collection("users").exists()) db.createCollection("users");
+        
         Model model = ModelFactory.createDefaultModel().read("src/main/resources/OWL.owl");
         
         Resource Student = model.createResource(NS + "Student");
@@ -36,6 +53,8 @@ public class Jena {
         Property polozioIspit = model.createProperty(NS, "polozioIspit");
         Property ispitZaPredmet = model.createProperty(NS, "ispitZaPredmet");
         Property dajeVestinu = model.createProperty(NS, "dajeVestinu");
+        Property nivo = model.createProperty(NS, "nivoVestine");
+        Property prioritet = model.createProperty(NS, "prioritet");
         
         Resource java = model.createResource(NS + "Java").addProperty(RDF.type, Vestina);
         Resource react = model.createResource(NS + "React").addProperty(RDF.type, Vestina);
@@ -49,22 +68,36 @@ public class Jena {
         Resource nikola = model.createResource(NS + "Nikola")
                 .addProperty(RDF.type, Student)
                 .addProperty(polozioIspit, ispit1);
+        
+        Resource javaReq = model.createResource(NS + "JavaReq")
+                .addProperty(RDF.type, Vestina)
+                .addLiteral(prioritet, 5);
+        Resource reactReq = model.createResource(NS + "ReactReq")
+                .addProperty(RDF.type, Vestina)
+                .addLiteral(prioritet, 4);
         Resource oglas = model.createResource(NS + "JuniorDeveloper")
                 .addProperty(RDF.type, Oglas)
-                .addProperty(zahtevaVestinu, java)
-                .addProperty(zahtevaVestinu, react);
+                .addProperty(zahtevaVestinu, javaReq)
+                .addProperty(zahtevaVestinu, reactReq);
         
         nikola.addProperty(imaVestinu, java);
         nikola.addProperty(imaVestinu, react);
+        java.addLiteral(nivo, 4);
+        react.addLiteral(nivo, 3);
         
         String s = """
                    PREFIX vbis: <http://www.vbis.org/ontology#>
-                   SELECT ?student
+                   SELECT ?student (SUM(?n * ?p) AS ?score)
                    WHERE {
                         ?student a vbis:Student .
                         ?student vbis:imaVestinu ?v .
-                        vbis:JuniorDeveloper vbis:zahtevaVestinu ?v .
+                        ?v vbis:nivoVestine ?n .
+                   
+                        vbis:JuniorDeveloper vbis:zahtevaVestinu ?ov .
+                        ?ov vbis:prioritet ?p .
                    }
+                   GROUP BY ?student
+                   ORDER BY DESC(?score)
                    """;
         
         Query q = QueryFactory.create(s);
@@ -117,5 +150,21 @@ public class Jena {
                     studentiJSON.next().getLocalName());
         }
         
+        BaseDocument studentDoc = new BaseDocument();
+        studentDoc.setKey("Nikola");
+        studentDoc.addAttribute("role", "student");
+        studentDoc.addAttribute("name", "Nikola Pacaric");
+        studentDoc.addAttribute("skills", new String[]{"Java", "React"});
+        studentDoc.addAttribute("studyProgram", "Informatika");
+        studentDoc.addAttribute("lookingForJob", true);
+        db.collection("users").insertDocument(studentDoc);
+        
+        BaseDocument agencyDoc = new BaseDocument();
+        agencyDoc.setKey("Agencija1");
+        agencyDoc.addAttribute("role", "agency");
+        agencyDoc.addAttribute("name", "Agencija1");
+        db.collection("users").insertDocument(agencyDoc);
+        
+        System.out.println("Studenti i agencije ubaceni u ArangoDB.");
     }
 }

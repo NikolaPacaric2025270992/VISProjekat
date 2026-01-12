@@ -46,16 +46,44 @@
   "http://www.vbis.org/ontology#JuniorDeveloper" : { 
     "http://www.vbis.org/ontology#zahtevaVestinu" : [ { 
       "type" : "uri" ,
-      "value" : "http://www.vbis.org/ontology#Java"
+      "value" : "http://www.vbis.org/ontology#ReactReq"
     }
     , { 
       "type" : "uri" ,
-      "value" : "http://www.vbis.org/ontology#React"
+      "value" : "http://www.vbis.org/ontology#JavaReq"
     }
      ] ,
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
       "type" : "uri" ,
       "value" : "http://www.vbis.org/ontology#Oglas"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#ReactReq" : { 
+    "http://www.vbis.org/ontology#prioritet" : [ { 
+      "type" : "literal" ,
+      "value" : "4" ,
+      "datatype" : "http://www.w3.org/2001/XMLSchema#long"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
+    }
+     ]
+  }
+   ,
+  "http://www.vbis.org/ontology#JavaReq" : { 
+    "http://www.vbis.org/ontology#prioritet" : [ { 
+      "type" : "literal" ,
+      "value" : "5" ,
+      "datatype" : "http://www.w3.org/2001/XMLSchema#long"
+    }
+     ] ,
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
+      "type" : "uri" ,
+      "value" : "http://www.vbis.org/ontology#Vestina"
     }
      ]
   }
@@ -104,7 +132,7 @@
      ] ,
     "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
       "type" : "bnode" ,
-      "value" : "_:f36574beac87c0ea5e20f02884f76f9d"
+      "value" : "_:f619f9ebcb7c287a5a3712bbf1c37440"
     }
      ] ,
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
@@ -150,7 +178,21 @@
      ]
   }
    ,
+  "_:f619f9ebcb7c287a5a3712bbf1c37440" : { 
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#resouce" : [ { 
+      "type" : "literal" ,
+      "value" : "#Student"
+    }
+     ]
+  }
+   ,
   "http://www.vbis.org/ontology#React" : { 
+    "http://www.vbis.org/ontology#nivoVestine" : [ { 
+      "type" : "literal" ,
+      "value" : "3" ,
+      "datatype" : "http://www.w3.org/2001/XMLSchema#long"
+    }
+     ] ,
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
       "type" : "uri" ,
       "value" : "http://www.vbis.org/ontology#Vestina"
@@ -169,7 +211,7 @@
   "http://www.vbis.org/ontology#nivoVestine" : { 
     "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
       "type" : "uri" ,
-      "value" : "http://www.w3.org/2001/XMLSchema#string"
+      "value" : "http://www.w3.org/2001/XMLSchema#int"
     }
      ] ,
     "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 
@@ -203,6 +245,12 @@
   }
    ,
   "http://www.vbis.org/ontology#Java" : { 
+    "http://www.vbis.org/ontology#nivoVestine" : [ { 
+      "type" : "literal" ,
+      "value" : "4" ,
+      "datatype" : "http://www.w3.org/2001/XMLSchema#long"
+    }
+     ] ,
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" : [ { 
       "type" : "uri" ,
       "value" : "http://www.vbis.org/ontology#Vestina"
@@ -236,18 +284,10 @@
      ]
   }
    ,
-  "_:f36574beac87c0ea5e20f02884f76f9d" : { 
-    "http://www.w3.org/1999/02/22-rdf-syntax-ns#resouce" : [ { 
-      "type" : "literal" ,
-      "value" : "#Student"
-    }
-     ]
-  }
-   ,
   "http://www.vbis.org/ontology#prioritet" : { 
     "http://www.w3.org/2000/01/rdf-schema#range" : [ { 
       "type" : "uri" ,
-      "value" : "http://www.w3.org/2001/XMLSchema#string"
+      "value" : "http://www.w3.org/2001/XMLSchema#int"
     }
      ] ,
     "http://www.w3.org/2000/01/rdf-schema#domain" : [ { 

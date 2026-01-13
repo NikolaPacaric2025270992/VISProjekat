@@ -55,50 +55,95 @@ public class Jena {
         Property dajeVestinu = model.createProperty(NS, "dajeVestinu");
         Property nivo = model.createProperty(NS, "nivoVestine");
         Property prioritet = model.createProperty(NS, "prioritet");
+        Property zaVestinu = model.createProperty(NS, "zaVestinu");
         
-        Resource java = model.createResource(NS + "Java").addProperty(RDF.type, Vestina);
-        Resource react = model.createResource(NS + "React").addProperty(RDF.type, Vestina);
-        Resource web = model.createResource(NS + "WebProgramiranje")
-                .addProperty(RDF.type, Predmet)
-                .addProperty(dajeVestinu, java)
-                .addProperty(dajeVestinu, react);
-        Resource ispit1 = model.createResource(NS + "IspitWeb")
-                .addProperty(RDF.type, Ispit)
-                .addProperty(ispitZaPredmet, web);
-        Resource nikola = model.createResource(NS + "Nikola")
-                .addProperty(RDF.type, Student)
-                .addProperty(polozioIspit, ispit1);
+        Resource Java = model.createResource(NS+"Java").addProperty(RDF.type, Vestina);
+        Resource React = model.createResource(NS+"React").addProperty(RDF.type, Vestina);
+        Resource SQL = model.createResource(NS+"SQL").addProperty(RDF.type, Vestina);
+        Resource Python = model.createResource(NS+"Python").addProperty(RDF.type, Vestina);
+        Resource Docker = model.createResource(NS+"Docker").addProperty(RDF.type, Vestina);
         
-        Resource javaReq = model.createResource(NS + "JavaReq")
-                .addProperty(RDF.type, Vestina)
-                .addLiteral(prioritet, 5);
-        Resource reactReq = model.createResource(NS + "ReactReq")
-                .addProperty(RDF.type, Vestina)
-                .addLiteral(prioritet, 4);
-        Resource oglas = model.createResource(NS + "JuniorDeveloper")
-                .addProperty(RDF.type, Oglas)
-                .addProperty(zahtevaVestinu, javaReq)
-                .addProperty(zahtevaVestinu, reactReq);
+        Resource nikola = model.createResource(NS+"Nikola").addProperty(RDF.type, Student);
+        Resource ana = model.createResource(NS+"Ana").addProperty(RDF.type, Student);
+        Resource marko = model.createResource(NS+"Marko").addProperty(RDF.type, Student);
+        Resource jelena = model.createResource(NS+"Jelena").addProperty(RDF.type, Student);
+        Resource ivan = model.createResource(NS+"Ivan").addProperty(RDF.type, Student);
+
+        // Nikola
+        Resource nikJava = model.createResource().addProperty(zaVestinu, Java).addLiteral(nivo,4);
+        Resource nikReact = model.createResource().addProperty(zaVestinu, React).addLiteral(nivo,3);
+        nikola.addProperty(imaVestinu, nikJava).addProperty(imaVestinu, nikReact);
+
+        // Ana
+        Resource anaJava = model.createResource().addProperty(zaVestinu, Java).addLiteral(nivo,5);
+        Resource anaSQL = model.createResource().addProperty(zaVestinu, SQL).addLiteral(nivo,4);
+        ana.addProperty(imaVestinu, anaJava).addProperty(imaVestinu, anaSQL);
+
+        // Marko
+        Resource markoPython = model.createResource().addProperty(zaVestinu, Python).addLiteral(nivo,5);
+        Resource markoDocker = model.createResource().addProperty(zaVestinu, Docker).addLiteral(nivo,3);
+        marko.addProperty(imaVestinu, markoPython).addProperty(imaVestinu, markoDocker);
+
+        // Jelena
+        Resource jelJava = model.createResource().addProperty(zaVestinu, Java).addLiteral(nivo,3);
+        Resource jelReact = model.createResource().addProperty(zaVestinu, React).addLiteral(nivo,5);
+        jelena.addProperty(imaVestinu, jelJava).addProperty(imaVestinu, jelReact);
+
+        // Ivan
+        Resource ivanJava = model.createResource().addProperty(zaVestinu, Java).addLiteral(nivo,2);
+        Resource ivanSQL = model.createResource().addProperty(zaVestinu, SQL).addLiteral(nivo,5);
+        ivan.addProperty(imaVestinu, ivanJava).addProperty(imaVestinu, ivanSQL);
         
-        nikola.addProperty(imaVestinu, java);
-        nikola.addProperty(imaVestinu, react);
-        java.addLiteral(nivo, 4);
-        react.addLiteral(nivo, 3);
+        Resource juniorJava = model.createResource(NS+"JuniorJava").addProperty(RDF.type, Oglas);
+        Resource frontend = model.createResource(NS+"FrontendDev").addProperty(RDF.type, Oglas);
+        Resource backend = model.createResource(NS+"BackendDev").addProperty(RDF.type, Oglas);
+        Resource pythonDev = model.createResource(NS+"PythonDev").addProperty(RDF.type, Oglas);
+
+        // Junior Java
+        juniorJava.addProperty(zahtevaVestinu,
+            model.createResource().addProperty(zaVestinu, Java).addLiteral(prioritet,5));
+        juniorJava.addProperty(zahtevaVestinu,
+            model.createResource().addProperty(zaVestinu, SQL).addLiteral(prioritet,3));
+
+        // Frontend
+        frontend.addProperty(zahtevaVestinu,
+            model.createResource().addProperty(zaVestinu, React).addLiteral(prioritet,5));
+        frontend.addProperty(zahtevaVestinu,
+            model.createResource().addProperty(zaVestinu, Java).addLiteral(prioritet,3));
+
+        // Backend
+        backend.addProperty(zahtevaVestinu,
+            model.createResource().addProperty(zaVestinu, Java).addLiteral(prioritet,5));
+        backend.addProperty(zahtevaVestinu,
+            model.createResource().addProperty(zaVestinu, SQL).addLiteral(prioritet,4));
+        backend.addProperty(zahtevaVestinu,
+            model.createResource().addProperty(zaVestinu, Docker).addLiteral(prioritet,3));
+
+        // Python Dev
+        pythonDev.addProperty(zahtevaVestinu,
+            model.createResource().addProperty(zaVestinu, Python).addLiteral(prioritet,5));
+        pythonDev.addProperty(zahtevaVestinu,
+            model.createResource().addProperty(zaVestinu, Docker).addLiteral(prioritet,2));
+        
         
         String s = """
-                   PREFIX vbis: <http://www.vbis.org/ontology#>
-                   SELECT ?student (SUM(?n * ?p) AS ?score)
-                   WHERE {
-                        ?student a vbis:Student .
-                        ?student vbis:imaVestinu ?v .
-                        ?v vbis:nivoVestine ?n .
-                   
-                        vbis:JuniorDeveloper vbis:zahtevaVestinu ?ov .
-                        ?ov vbis:prioritet ?p .
-                   }
-                   GROUP BY ?student
-                   ORDER BY DESC(?score)
-                   """;
+            PREFIX vbis: <http://www.vbis.org/ontology#>
+
+            SELECT ?student ?job (SUM(?n * ?p) AS ?score)
+            WHERE {
+              ?student a vbis:Student .
+              ?student vbis:imaVestinu ?sv .
+              ?sv vbis:zaVestinu ?skill .
+              ?sv vbis:nivoVestine ?n .
+
+              ?job a vbis:Oglas .
+              ?job vbis:zahtevaVestinu ?ov .
+              ?ov vbis:zaVestinu ?skill .
+              ?ov vbis:prioritet ?p .
+            }
+            GROUP BY ?student ?job
+            ORDER BY DESC(?score)
+            """;
         
         Query q = QueryFactory.create(s);
         try (QueryExecution exe = QueryExecutionFactory.create(q, model)){

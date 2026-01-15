@@ -1,23 +1,12 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.vbisapi.springbootapi;
 
-
 import com.arangodb.ArangoDatabase;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.arangodb.entity.BaseDocument;
+import org.springframework.web.bind.annotation.*;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-/**
- *
- * @author nikol
- */
 @RestController
+@RequestMapping("/api")
 public class ApiController {
 
     private final ArangoDatabase db;
@@ -27,22 +16,32 @@ public class ApiController {
     }
 
     @GetMapping("/students")
-    public List<String> getStudents() {
-        List<String> students = new ArrayList<>();
-        String aql = "FOR u IN users FILTER u.role == @role RETURN u.name";
-        db.query(aql, Map.of("role", "student"), null, String.class)
-          .forEachRemaining(students::add);
+    public List<Map<String,Object>> getStudentsLookingForJob() {
+        List<Map<String,Object>> students = new ArrayList<>();
+        String aql = "FOR u IN users FILTER u.role=='student' AND u.lookingForJob==true RETURN u";
+        db.query(aql, null, null, BaseDocument.class)
+                .forEachRemaining(doc -> {
+                    Map<String,Object> s = new HashMap<>();
+                    s.put("username", doc.getKey());
+                    s.put("name", doc.getAttribute("name"));
+                    s.put("skills", doc.getAttribute("skills"));
+                    s.put("studyProgram", doc.getAttribute("studyProgram"));
+                    s.put("lookingForJob", doc.getAttribute("lookingForJob"));
+                    students.add(s);
+                });
         return students;
     }
 
-    @GetMapping("/recommendations")
-    public List<String> getRecommendations() {
-        List<String> recommendations = new ArrayList<>();
-        recommendations.add("Ana -> BackendDev (score 41)");
-        recommendations.add("Ana -> JuniorJava (score 37)");
-        recommendations.add("Jelena -> FrontendDev (score 34)");
-        recommendations.add("Marko -> PythonDev (score 31)");
-        return recommendations;
+    @GetMapping("/students/{username}")
+    public Map<String,Object> getStudentProfile(@PathVariable String username) {
+        BaseDocument doc = db.collection("users").getDocument(username, BaseDocument.class);
+        if(doc==null) return Map.of("error","Student not found");
+        return Map.of(
+                "username", doc.getKey(),
+                "name", doc.getAttribute("name"),
+                "skills", doc.getAttribute("skills"),
+                "studyProgram", doc.getAttribute("studyProgram"),
+                "lookingForJob", doc.getAttribute("lookingForJob")
+        );
     }
 }
-

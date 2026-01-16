@@ -32,10 +32,12 @@ public class AgencyController {
         String oglasId = (String) data.get("id");
         String naslov = (String) data.get("naslov");
         String agencijaUsername = (String) data.get("agencijaUsername");
-        List<String> vestine = (List<String>) data.get("vestine"); // List of URIs
+
+        // KASTUJEMO u listu mapa (jer svaka veština sada ima nivo i prioritet)
+        List<Map<String, Object>> vestine = (List<Map<String, Object>>) data.get("vestine");
 
         jena.addOglas(oglasId, naslov, agencijaUsername, vestine);
-        return ResponseEntity.ok("Oglas uspešno postavljen.");
+        return ResponseEntity.ok("Oglas uspešno postavljen sa detaljnim zahtevima veština.");
     }
 
     // Rang lista za odabrani oglas
@@ -48,5 +50,11 @@ public class AgencyController {
     @GetMapping("/students-searching")
     public ResponseEntity<List<Map<String, String>>> getStudentsSearching() {
         return ResponseEntity.ok(jena.getStudentsLookingForWork());
+    }
+    
+    @GetMapping("/api/debug/dump")
+    public String dumpDatabase() {
+        jena.debugPrintAllTriples();
+        return "Podaci su ispisani u Java konzoli (NetBeans terminal).";
     }
 }

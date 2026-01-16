@@ -30,13 +30,24 @@ public class GeneralController {
     }
 
     @GetMapping("/export/ontology")
+    @CrossOrigin("*")
     public ResponseEntity<String> exportOntology() {
-        Model model = jena.getModel();
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        model.write(baos, "RDF/XML-ABBREV");
-        return ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=ontologija_export.rdf")
-                .body(baos.toString());
+        try {
+            if (jena.getModel() == null) {
+                return ResponseEntity.status(500).body("Sistem baze znanja (Jena) nije spreman.");
+            }
+
+            String rdfData = jena.getOntologyExport();
+
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=ontologija_export.rdf")
+                    .header("Content-Type", "application/rdf+xml")
+                    .body(rdfData);
+        } catch (Exception e) {
+            // Ovo će ispisati tačnu grešku u konzoli NetBeansa da vidiš šta se desilo
+            e.printStackTrace(); 
+            return ResponseEntity.status(500).body("Greška pri generisanju RDF fajla: " + e.getMessage());
+        }
     }
 
     @PostMapping("/import/ontology")

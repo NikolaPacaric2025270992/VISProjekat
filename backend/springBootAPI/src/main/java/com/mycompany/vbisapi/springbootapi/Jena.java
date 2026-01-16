@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import org.apache.jena.reasoner.Reasoner;
+import org.apache.jena.reasoner.ReasonerRegistry;
 
 public class Jena {
     private OntModel model;
@@ -19,23 +21,54 @@ public class Jena {
     private final String TDB_PATH = "tdb_data"; // Folder za bazu znanja
 
     public Jena(String path) {
-        // 1. Inicijalizacija TDB baze
-        this.dataset = TDBFactory.createDataset(TDB_PATH);
+        try {
+            // 1. Inicijalizacija TDB baze
+            this.dataset = TDBFactory.createDataset(TDB_PATH);
 
-        // 2. Učitavanje šeme (OWL.owl) kao običan model
-        Model schema = ModelFactory.createDefaultModel();
-        schema.read(path);
+            // 2. Učitavanje šeme
+            Model schema = ModelFactory.createDefaultModel();
+            schema.read(path);
 
-        // 3. Kreiranje OWL Reasoner-a i povezivanje sa šemom
-        // Ovo osigurava da Reasoner zna tvoja pravila (npr. šta je Student)
-        org.apache.jena.reasoner.Reasoner reasoner = org.apache.jena.reasoner.ReasonerRegistry.getOWLReasoner();
-        reasoner = reasoner.bindSchema(schema);
+            // 3. Eksplicitno kreiranje Reasoner-a
+            Reasoner reasoner = ReasonerRegistry.getOWLReasoner();
+            reasoner = reasoner.bindSchema(schema);
 
-        // 4. Kreiranje Inference modela koji spaja Reasoner i TDB podatke
-        InfModel infModel = ModelFactory.createInfModel(reasoner, dataset.getDefaultModel());
+            // 4. Povezivanje sa TDB podacima
+            InfModel infModel = ModelFactory.createInfModel(reasoner, dataset.getDefaultModel());
 
-        // 5. Na kraju sve to stavljamo u OntModel radi lakšeg rada sa Individualima
-        this.model = ModelFactory.createOntologyModel(OntModelSpec.OWL_DL_MEM, infModel);
+            // IZMENA OVDE: Koristimo specifikaciju koja podržava zaključivanje (INF)
+            this.model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_RULE_INF, infModel);
+
+            System.out.println("Jena sistem uspešno inicijalizovan sa podrškom za validaciju.");
+        } catch (Exception e) {
+            System.err.println("KRITIČNA GREŠKA: Jena nije mogla da se pokrene!");
+            e.printStackTrace();
+        }
+    }
+    
+    public void debugPrintAllTriples() {
+        dataset.begin(ReadWrite.READ);
+        try {
+            System.out.println("\n--- DEBUG: SVE TRIPLETE U BAZI ---");
+            StmtIterator iter = model.listStatements();
+            int count = 0;
+            while (iter.hasNext()) {
+                Statement stmt = iter.nextStatement();
+                Resource  subject   = stmt.getSubject();
+                Property  predicate = stmt.getPredicate();
+                RDFNode   object    = stmt.getObject();
+
+                // Filtriramo samo tvoj namespace da ne bismo gledali hiljade sistemskih OWL tripleta
+                if (subject.toString().contains(NS) || predicate.toString().contains(NS)) {
+                    System.out.println(subject.getLocalName() + " -> " + predicate.getLocalName() + " -> " + object.toString());
+                    count++;
+                }
+            }
+            System.out.println("Ukupno tvojih tripleta: " + count);
+            System.out.println("----------------------------------\n");
+        } finally {
+            dataset.end();
+        }
     }
 
     // Dodavanje Studenta (Upisuje se u TDB, ne u fajl)
@@ -77,29 +110,39 @@ public class Jena {
     }
 
     // DODAJEMO: Metoda za Agenciju (Specifikacija zahteva)
-    public void addOglas(String oglasId, String naslov, String agencijaUsername, List<String> vestineURIs) throws Exception {
+    // Prvo napravi malu pomoćnu klasu ili koristi List<Map<String, Object>>
+    // 1. ISPRAVLJEN addOglas - Dodata veza zahteva ka vestini
+    // 2. ISPRAVLJEN addOglas - Povezuje zahtev direktno sa veštinom
+    public void addOglas(String oglasId, String naslov, String agencijaUsername, 
+                         List<Map<String, Object>> vestineSaDetaljima) throws Exception {
         dataset.begin(ReadWrite.WRITE);
         try {
-            OntClass oglasClass = model.getOntClass(NS + "Oglas");
-            Individual oglas = model.createIndividual(NS + oglasId, oglasClass);
+            Individual oglas = model.createIndividual(NS + oglasId, model.getOntClass(NS + "Oglas"));
             oglas.addProperty(model.getDatatypeProperty(NS + "naslovOglasa"), naslov);
-            
-            // Povezivanje sa agencijom
-            Resource agencija = model.getResource(NS + agencijaUsername);
-            oglas.addProperty(model.getObjectProperty(NS + "postavljenOd"), agencija);
+            oglas.addProperty(model.getObjectProperty(NS + "postavljenOd"), model.getResource(NS + agencijaUsername));
 
-            // Dodavanje potrebnih veština
-            for (String vUri : vestineURIs) {
+            for (Map<String, Object> detalji : vestineSaDetaljima) {
+                String vUri = (String) detalji.get("uri");
+                int nivo = (int) detalji.get("nivo");
+                int prioritet = (int) detalji.get("prioritet");
                 Resource vestina = model.getResource(vUri);
+
+                // Veza Oglas -> Vestina
                 oglas.addProperty(model.getObjectProperty(NS + "zahtevaVestinu"), vestina);
+
+                // Kreiramo 'Zahtev' (Individual tipa Vestina koji čuva nivo i prioritet)
+                String zahtevId = oglasId + "_" + vestina.getLocalName() + "_req";
+                Individual zahtev = model.createIndividual(NS + zahtevId, model.getOntClass(NS + "Vestina"));
+                zahtev.addLiteral(model.getDatatypeProperty(NS + "nivoVestine"), nivo);
+                zahtev.addLiteral(model.getDatatypeProperty(NS + "prioritet"), prioritet);
+
+                // KLJUČNA VEZA: Povezujemo ovaj zahtev sa konkretnom veštinom
+                zahtev.addProperty(model.getObjectProperty(NS + "imaVestinu"), vestina);
             }
-            validateTransaction();
             dataset.commit();
         } catch (Exception e) {
-            if (dataset.isInTransaction()) {
-                dataset.abort(); // OBAVEZNO poništavamo transakciju u slučaju greške
-            }
-            throw e; // Prosleđujemo grešku dalje da bi je kontroler video
+            if (dataset.isInTransaction()) dataset.abort();
+            throw e;
         } finally {
             dataset.end();
         }
@@ -172,69 +215,105 @@ public class Jena {
     }
     
     // 1. Metoda za dodavanje položenog ispita (TDB)
-    public void addExam(String username, String predmetId, int ocena) throws Exception {
+    // 1. ISPRAVLJEN addExam - Kreira Ispit, Predmet i povezuje sa Veštinom
+    public void addExam(String username, String predmetId, int ocena, int nivoKojiPredmetDaje) throws Exception {
         dataset.begin(ReadWrite.WRITE);
         try {
+            // Kreiramo jedinku Ispita
             String examId = "ispit_" + username + "_" + predmetId;
-            OntClass ispitClass = model.getOntClass(NS + "Ispit");
-            Individual ispit = model.createIndividual(NS + examId, ispitClass);
-
-            // Postavljanje ocene
+            Individual ispit = model.createIndividual(NS + examId, model.getOntClass(NS + "Ispit"));
             ispit.addLiteral(model.getDatatypeProperty(NS + "ocena"), ocena);
 
-            // Povezivanje sa predmetom
-            Resource predmet = model.getResource(NS + predmetId);
+            // Kreiramo jedinku Predmeta
+            Individual predmet = model.createIndividual(NS + predmetId, model.getOntClass(NS + "Predmet"));
+            predmet.removeAll(model.getDatatypeProperty(NS + "nivoVestine"));
+            predmet.addLiteral(model.getDatatypeProperty(NS + "nivoVestine"), nivoKojiPredmetDaje);
+
+            // POVEZIVANJE: Ispit -> Predmet
             ispit.addProperty(model.getObjectProperty(NS + "ispitZaPredmet"), predmet);
 
-            // Povezivanje studenta sa ispitom
+            // KLJUČNA VEZA: Predmet -> Vestina (uzimamo npr. 'Java' iz 'Java1')
+            String vestinaId = predmetId.replaceAll("\\d", ""); 
+            Resource vestina = model.getResource(NS + vestinaId);
+            predmet.addProperty(model.getObjectProperty(NS + "dajeVestinu"), vestina);
+
+            // POVEZIVANJE: Student -> Ispit
             Resource student = model.getResource(NS + username);
             student.addProperty(model.getObjectProperty(NS + "polozioIspit"), ispit);
-            validateTransaction();
 
+            validateTransaction();
             dataset.commit();
         } catch (Exception e) {
-            if (dataset.isInTransaction()) {
-                dataset.abort(); // OBAVEZNO poništavamo transakciju u slučaju greške
-            }
-            throw e; // Prosleđujemo grešku dalje da bi je kontroler video
+            if (dataset.isInTransaction()) dataset.abort();
+            throw e;
         } finally {
             dataset.end();
         }
     }
 
-    // 2. RANG LISTA: Pronalaženje idealnih kandidata za oglas (SPARQL)
+    // 2. ISPRAVLJEN getRankedStudentsForOglas - Popravljena logika spajanja
     public List<Map<String, String>> getRankedStudentsForOglas(String oglasId) {
         List<Map<String, String>> kandidati = new ArrayList<>();
-
-        // OBAVEZNO dodajemo transakciju i ovde
         dataset.begin(ReadWrite.READ);
         try {
             String queryString = 
                 "PREFIX : <" + NS + "> " +
-                "SELECT DISTINCT ?studentName ?username " +
+                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " +
+                "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> " +
+                "SELECT DISTINCT ?username ?studentName ?score " +
                 "WHERE { " +
+                "  # 1. Uzmi oglas i sve njegove vestine \n" +
                 "  <" + NS + oglasId + "> :zahtevaVestinu ?v . " +
-                "  ?student :imaVestinu ?v . " + 
+                "  \n" +
+                "  # 2. Pronadji 'zahtev' objekat koji odgovara oglasu i toj vestini \n" +
+                "  ?zahtev :imaVestinu ?v . " +
+                "  FILTER(CONTAINS(STR(?zahtev), \"" + oglasId + "\")) " +
+                "  ?zahtev :prioritet ?prioritet . " +
+                " \n" +
+                "  # 3. Pronadji studente koji imaju tu vestinu kroz ispite \n" +
+                "  ?student :polozioIspit ?ispit . " +
+                "  ?student :traziPosao true . " +
+                "  ?ispit :ispitZaPredmet ?predmet . " +
+                "  ?predmet :dajeVestinu ?v . " + // Predmet mora biti povezan sa vestinom u ontologiji!
+                "  ?predmet :nivoVestine ?nivoStudenta . " +
+                "  ?ispit :ocena ?ocena . " +
+                " \n" +
                 "  ?student :imePrezime ?studentName . " +
-                "  ?student :traziPosao true . " + 
                 "  BIND(STRAFTER(STR(?student), '#') AS ?username) " +
-                "}";
+                " \n" +
+                "  # 4. Kalkulacija uz pretvaranje u brojeve \n" +
+                "  BIND((xsd:integer(?ocena) * xsd:integer(?nivoStudenta) * xsd:integer(?prioritet)) AS ?score) " +
+                "} " +
+                "ORDER BY DESC(?score)";
 
-            // Koristimo try-with-resources da zatvorimo QueryExecution
             try (QueryExecution qexec = QueryExecutionFactory.create(queryString, model)) {
                 ResultSet results = qexec.execSelect();
                 while (results.hasNext()) {
                     QuerySolution soln = results.nextSolution();
                     Map<String, String> k = new HashMap<>();
-                    k.put("name", soln.getLiteral("studentName").getString());
                     k.put("username", soln.get("username").toString());
+                    k.put("name", soln.getLiteral("studentName").getString());
+                    k.put("score", soln.get("score").asLiteral().getString());
                     kandidati.add(k);
                 }
             }
+        } catch (Exception e) {
+            System.err.println("Greška u rangiranju: " + e.getMessage());
         } finally {
             dataset.end();
         }
         return kandidati;
+    }
+    
+    public String getOntologyExport() {
+        dataset.begin(ReadWrite.READ);
+        try {
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            model.write(baos, "RDF/XML-ABBREV");
+            return baos.toString();
+        } finally {
+            dataset.end();
+        }
     }
     
     private void validateTransaction() throws Exception {
@@ -278,7 +357,15 @@ public class Jena {
         List<Map<String, String>> oglasi = new ArrayList<>();
         dataset.begin(ReadWrite.READ);
         try {
-            String queryString = "PREFIX : <" + NS + "> SELECT ?id ?naslov WHERE { ?id rdf:type :Oglas . ?id :naslovOglasa ?naslov . }";
+            String queryString = 
+                "PREFIX : <" + NS + "> " +
+                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " + // OBAVEZNO
+                "SELECT ?id ?naslov " +
+                "WHERE { " +
+                "  ?id rdf:type :Oglas . " + 
+                "  ?id :naslovOglasa ?naslov . " +
+                "}";
+
             try (QueryExecution qexec = QueryExecutionFactory.create(queryString, model)) {
                 ResultSet results = qexec.execSelect();
                 while (results.hasNext()) {
@@ -302,6 +389,7 @@ public class Jena {
         try {
             String queryString = 
                 "PREFIX : <" + NS + "> " +
+                "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> " + // OBAVEZNO
                 "SELECT ?username ?name " +
                 "WHERE { " +
                 "  ?s rdf:type :Student . " +

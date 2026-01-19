@@ -133,6 +133,14 @@ function App() {
 
   const exportData = (type) => window.open(`${API_BASE}/export/${type}`);
 
+  const handleLogout = () => {
+    setAuthUser(null);
+    setRankedKandidati([]);      // Brišemo rang listu
+    setRecommendations([]);      // Brišemo preporuke za studenta
+    setSearchingStudents([]);   // Brišemo listu studenata za agenciju
+    setIsRegisterMode(false);    // Vraćamo na login ekran
+  };
+
   // Osvežavanje podataka pri loginu
   useEffect(() => {
     if (authUser) {
@@ -202,7 +210,12 @@ function App() {
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span>Ulogovani ste kao: <b>{authUser.username}</b> ({authUser.type})</span>
-            <button onClick={() => setAuthUser(null)} style={{ background: "#e74c3c", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px" }}>Logout</button>
+            <button 
+              onClick={handleLogout} 
+              style={{ background: "#e74c3c", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
+            >
+              Logout ({authUser.username})
+            </button>
           </div>
           <hr />
 
@@ -267,12 +280,23 @@ function App() {
               </div>
             ))}
             
-            {rankedKandidati.length > 0 && (
-              <div style={{ background: "#e8f5e9", padding: "15px", marginTop: "15px", borderRadius: "5px" }}>
-                <h4>Top kandidati:</h4>
+            {/* Dodajemo proveru: samo ako je agencija I ako ima rezultata */}
+            {authUser?.type === "agency" && rankedKandidati.length > 0 && (
+              <div style={{ background: "#e8f5e9", padding: "15px", marginTop: "15px", borderRadius: "5px", border: "1px solid #c8e6c9" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <h4 style={{ margin: 0 }}>Top kandidati za oglas:</h4>
+                  <button 
+                    onClick={() => setRankedKandidati([])} 
+                    style={{ cursor: "pointer", background: "none", border: "none", color: "#666" }}
+                  >
+                    zatvori ✖
+                  </button>
+                </div>
                 <ol>
                   {rankedKandidati.map((k, i) => (
-                    <li key={i}><b>{k.name}</b> - Skor: <span style={{ color: "green" }}>{k.score}</span></li>
+                    <li key={i}>
+                      <b>{k.name}</b> - Skor: <span style={{ color: "green", fontWeight: "bold" }}>{k.score}</span>
+                    </li>
                   ))}
                 </ol>
               </div>

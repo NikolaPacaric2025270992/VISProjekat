@@ -18,6 +18,16 @@ function App() {
   const [examForm, setExamForm] = useState({ predmetId: "", ocena: 10, nivo: 1 });
   const [jobForm, setJobForm] = useState({ id: "", title: "", skills: "", level: 1, priority: 1 });
 
+  // --- USER UPDATE --- 
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
+  const [editNameMode, setEditNameMode] = useState(false);
+  const [editPassMode, setEditPassMode] = useState(false);
+  const [tempName, setTempName] = useState("");
+  const [tempPass, setTempPass] = useState("");
+
   // ================= POMOĆNE FUNKCIJE =================
 
   const resetAuthForm = () => setAuthForm({ username: "", password: "", realName: "", type: "student" });
@@ -133,6 +143,28 @@ function App() {
 
   const exportData = (type) => window.open(`${API_BASE}/export/${type}`);
 
+  const handleUpdateName = async () => {
+    const res = await fetch(`${API_BASE}/api/profile/update-name/${authUser.username}?newName=${encodeURIComponent(tempName)}`, {
+      method: "PUT"
+    });
+    if (res.ok) {
+      alert("Ime izmenjeno!");
+      setAuthUser({ ...authUser, realName: tempName });
+      setEditNameMode(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    const res = await fetch(`${API_BASE}/api/profile/update-password/${authUser.username}?newPassword=${encodeURIComponent(tempPass)}`, {
+      method: "PUT"
+    });
+    if (res.ok) {
+      alert("Lozinka izmenjena!");
+      setEditPassMode(false);
+      setTempPass("");
+    }
+  };
+
   const handleLogout = () => {
     setAuthUser(null);
     setRankedKandidati([]);      // Brišemo rang listu
@@ -223,16 +255,47 @@ function App() {
           {authUser.type === "student" && (
             <div>
               <div style={box}>
-                <h3>Moj Profil (Status: {authUser.traziPosao ? "Tražim posao" : "Ne tražim posao"})</h3>
-                <button onClick={() => updateStatus(!authUser.traziPosao)}>Promeni status</button>
+                <h3>Moj Profil</h3>
                 
-                <h4>Dodaj položen ispit</h4>
-                <input style={inputStyle} placeholder="ID Predmeta (npr. Java1)" value={examForm.predmetId} onChange={e => setExamForm({...examForm, predmetId: e.target.value})} />
-                <input style={inputStyle} type="number" placeholder="Ocena" value={examForm.ocena} onChange={e => setExamForm({...examForm, ocena: e.target.value})} />
-                <input style={inputStyle} type="number" placeholder="Nivo (1-5)" value={examForm.nivo} onChange={e => setExamForm({...examForm, nivo: e.target.value})} />
-                <button onClick={addExam} style={{ padding: "8px 15px", background: "#3498db", color: "white", border: "none", borderRadius: "4px" }}>Sačuvaj</button>
-              </div>
+                {/* SEKCIJA ZA IME */}
+                <div style={{ marginBottom: "15px", borderBottom: "1px solid #ddd", paddingBottom: "10px" }}>
+                  <label>Ime i prezime:</label> <br />
+                  {!editNameMode ? (
+                    <>
+                      <b>{authUser.realName}</b> 
+                      <button onClick={() => { setEditNameMode(true); setTempName(authUser.realName); }} style={smallBtn}>Izmeni</button>
+                    </>
+                  ) : (
+                    <>
+                      <input style={inputStyle} value={tempName} onChange={e => setTempName(e.target.value)} />
+                      <button onClick={handleUpdateName} style={saveBtn}>Sačuvaj</button>
+                      <button onClick={() => setEditNameMode(false)} style={cancelBtn}>Otkaži</button>
+                    </>
+                  )}
+                </div>
 
+                {/* SEKCIJA ZA LOZINKU */}
+                <div style={{ marginBottom: "15px" }}>
+                  <label>Lozinka:</label> <br />
+                  {!editPassMode ? (
+                    <>
+                      <b>********</b> 
+                      <button onClick={() => setEditPassMode(true)} style={smallBtn}>Promeni lozinku</button>
+                    </>
+                  ) : (
+                    <>
+                      <input type="password" style={inputStyle} placeholder="Nova lozinka" value={tempPass} onChange={e => setTempPass(e.target.value)} />
+                      <button onClick={handleUpdatePassword} style={saveBtn}>Sačuvaj</button>
+                      <button onClick={() => setEditPassMode(false)} style={cancelBtn}>Otkaži</button>
+                    </>
+                  )}
+                </div>
+
+                <hr />
+                <p>Status: <b>{authUser.traziPosao ? "Tražim posao" : "Ne tražim posao"}</b></p>
+                <button onClick={() => updateStatus(!authUser.traziPosao)}>Promeni status</button>
+              </div>
+              
               <div style={box}>
                 <h3>✨ Preporučeni oglasi za tebe</h3>
                 <ul>
@@ -312,7 +375,9 @@ function App() {
     </div>
   );
 }
-
+const smallBtn = { marginLeft: "10px", padding: "2px 8px", fontSize: "12px", cursor: "pointer" };
+const saveBtn = { background: "#27ae60", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer", marginRight: "5px" };
+const cancelBtn = { background: "#95a5a6", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" };
 const exportBtn = { margin: "5px", padding: "10px", cursor: "pointer", background: "#95a5a6", color: "white", border: "none", borderRadius: "4px" };
 
 export default App;

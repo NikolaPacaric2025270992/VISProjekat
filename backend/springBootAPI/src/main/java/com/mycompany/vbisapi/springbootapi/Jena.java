@@ -413,6 +413,26 @@ public class Jena {
         }
         return studenti;
     }
+    
+    public void updateStudentProfile(String username, String newRealName) throws Exception {
+        dataset.begin(ReadWrite.WRITE);
+        try {
+            Individual student = model.getIndividual(NS + username);
+            if (student != null) {
+                DatatypeProperty imeProp = model.getDatatypeProperty(NS + "imePrezime");
+                // Uklanjamo staro ime i postavljamo novo
+                student.removeAll(imeProp);
+                student.addProperty(imeProp, newRealName);
+
+                dataset.commit();
+            }
+        } catch (Exception e) {
+            if (dataset.isInTransaction()) dataset.abort();
+            throw e;
+        } finally {
+            dataset.end();
+        }
+    }
 
     public OntModel getModel() { return model; }
 }

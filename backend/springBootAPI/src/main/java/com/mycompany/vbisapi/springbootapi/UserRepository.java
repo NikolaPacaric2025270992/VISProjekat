@@ -21,7 +21,7 @@ public class UserRepository {
     public void saveUser(String username, String password, String role, String ontologyUri) {
         BaseDocument user = new BaseDocument();
         user.setKey(username);
-        user.addAttribute("password", password); // Ovde bi idealno išao BCrypt
+        user.addAttribute("password", password);
         user.addAttribute("role", role); // "student" ili "agency"
         user.addAttribute("ontologyUri", ontologyUri);
         

@@ -33,7 +33,7 @@ public class AgencyController {
         String naslov = (String) data.get("naslov");
         String agencijaUsername = (String) data.get("agencijaUsername");
 
-        // KASTUJEMO u listu mapa (jer svaka veština sada ima nivo i prioritet)
+        // Kastujem u listu mapa (jer svaka veština sada ima nivo i prioritet)
         List<Map<String, Object>> vestine = (List<Map<String, Object>>) data.get("vestine");
 
         jena.addOglas(oglasId, naslov, agencijaUsername, vestine);

@@ -25,21 +25,21 @@ public class AuthController {
         String type = userData.get("type"); // "student" ili "agency"
         String realName = userData.get("realName");
 
-        // 1. Spasavanje u ArangoDB
+        // ArangoDB
         BaseDocument userDoc = new BaseDocument();
         userDoc.setKey(username);
-        userDoc.addAttribute("password", password); // Napomena: U realnosti koristi BCrypt!
+        userDoc.addAttribute("password", password);
         userDoc.addAttribute("type", type);
         userDoc.addAttribute("traziPosao", true);
         userDoc.addAttribute("ontologyUri", "http://www.vbis.org/ontology#" + username);
         
         db.collection("users").insertDocument(userDoc);
 
-        // 2. Spasavanje u OWL preko Jena klase
+        // OWL preko Jena klase
         if ("student".equals(type)) {
             jena.addStudent(username, realName);
         } else {
-            // Dodaj sličnu metodu za agenciju u Jena klasu
+            // Za agenciju u Jena klasu
             jena.addAgency(username, realName);
         }
 
@@ -51,21 +51,19 @@ public class AuthController {
         String username = credentials.get("username");
         String password = credentials.get("password");
 
-        // ArangoDB koristi getDocument i vraća null ako dokument ne postoji
+        // Vraća null ako dokument ne postoji
         BaseDocument user = db.collection("users").getDocument(username, BaseDocument.class);
 
         if (user != null) {
-            // Izvlačimo lozinku iz svojstava dokumenta
             String dbPassword = (String) user.getProperties().get("password");
 
             if (dbPassword != null && dbPassword.equals(password)) {
-                // Pravimo odgovor za frontend
                 Map<String, Object> response = new HashMap<>();
-                response.put("username", user.getKey()); // Ovo je _key (username)
+                response.put("username", user.getKey());
                 response.put("type", user.getProperties().get("type")); // "student" ili "agency"
                 response.put("ontologyUri", user.getProperties().get("ontologyUri"));
 
-                // Ako je student, dodajemo i status traženja posla
+                // Ako je student dodajem i status traženja posla
                 if (user.getProperties().containsKey("traziPosao")) {
                     response.put("traziPosao", user.getProperties().get("traziPosao"));
                 }

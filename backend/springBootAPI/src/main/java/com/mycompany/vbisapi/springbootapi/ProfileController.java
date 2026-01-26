@@ -42,12 +42,12 @@ public class ProfileController {
             @RequestParam("ocena") int ocena, 
             @RequestParam("nivo") int nivo) throws Exception {
         
-        // Pozivamo Jenu da upiše ispit u TDB
+        // Pozivam Jenu da upiše ispit u TDB
         jena.addExam(username, predmetId, ocena, nivo);
         return ResponseEntity.ok("Ispit dodat u bazu znanja za studenta: " + username);
     }
     
-    // 1. Endpoint samo za IME (Arango + Jena)
+    // IME (Arango + Jena)
     @PutMapping("/update-name/{username}")
     public ResponseEntity<?> updateName(
             @PathVariable("username") String username, 
@@ -57,13 +57,13 @@ public class ProfileController {
         if (user != null) {
             user.addAttribute("realName", newName);
             db.collection("users").updateDocument(username, user);
-            jena.updateStudentProfile(username, newName); // Menjamo i u ontologiji
+            jena.updateStudentProfile(username, newName); // Menjam u ontologiji
             return ResponseEntity.ok("Ime uspešno promenjeno.");
         }
         return ResponseEntity.status(404).body("Korisnik nije pronađen.");
     }
 
-    // 2. Endpoint samo za LOZINKU (Samo Arango)
+    // LOZINKA (Samo Arango)
     @PutMapping("/update-password/{username}")
     public ResponseEntity<?> updatePassword(
             @PathVariable("username") String username, 

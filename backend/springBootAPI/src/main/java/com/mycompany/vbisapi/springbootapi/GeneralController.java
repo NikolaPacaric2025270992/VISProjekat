@@ -4,20 +4,25 @@
  */
 package com.mycompany.vbisapi.springbootapi;
 
-import org.apache.jena.rdf.model.Model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.Map;
+import com.arangodb.ArangoDatabase;
+import com.arangodb.entity.BaseDocument;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 @RestController
 public class GeneralController {
 
     @Autowired
     private Jena jena;
+    
+    @Autowired
+    private ArangoDatabase db;
 
     @GetMapping("/recommendations/{username}")
     public ResponseEntity<List<String>> getAds(@PathVariable String username) {
@@ -44,9 +49,34 @@ public class GeneralController {
                     .header("Content-Type", "application/rdf+xml")
                     .body(rdfData);
         } catch (Exception e) {
-            // Ovo će ispisati tačnu grešku u konzoli NetBeansa da vidiš šta se desilo
+            // Ispis greske ako ima da vidim sta se tacno desava
             e.printStackTrace(); 
             return ResponseEntity.status(500).body("Greška pri generisanju RDF fajla: " + e.getMessage());
+        }
+    }
+    
+    @GetMapping("/export/users")
+    public ResponseEntity<List<Map<String, Object>>> exportUsers() {
+        try {
+            List<Map<String, Object>> usersJson = new ArrayList<>();
+
+            // Izvršavam upit i dobijam kursor
+            com.arangodb.ArangoCursor<BaseDocument> cursor = db.query("FOR u IN users RETURN u", BaseDocument.class);
+
+            // Prolazim kroz kursor i punim listu mapa
+            cursor.forEachRemaining(doc -> {
+                Map<String, Object> map = new HashMap<>(doc.getProperties());
+                map.put("username", doc.getKey()); // Dodajemo _key kao username
+                usersJson.add(map);
+            });
+
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=korisnici_export.json")
+                    .header("Content-Type", "application/json")
+                    .body(usersJson);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
         }
     }
 

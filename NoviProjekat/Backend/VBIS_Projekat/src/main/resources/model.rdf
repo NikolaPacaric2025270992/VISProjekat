@@ -1,0 +1,471 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.semanticweb.org/nikol/ontologies/2026/2/untitled-ontology-4http://www.vbis-projekat.rs/zaposljavanje/"
+     xml:base="http://www.semanticweb.org/nikol/ontologies/2026/2/untitled-ontology-4http://www.vbis-projekat.rs/zaposljavanje/"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+     xmlns:model="http://www.vbis-projekat.rs/model#">
+    <owl:Ontology rdf:about="http://www.vbis-projekat.rs/model"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#imaPolaganje -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#imaPolaganje">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#Student"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#Polaganje"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#imaPrioritet -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#imaPrioritet">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#ZahtevanaVestina"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#Prioritet"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#imaZahtev -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#imaZahtev">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#Oglas"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#ZahtevanaVestina"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#nudiNivo -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#nudiNivo">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#Predmet"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#NivoSpremnosti"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#objavljuje -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#objavljuje">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#AgencijaZaZaposljavanje"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#Oglas"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#odnosiSeNaPredmet -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#odnosiSeNaPredmet">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#Polaganje"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#Predmet"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#odnosiSeNaVestinu -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#odnosiSeNaVestinu">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#ZahtevanaVestina"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#Vestina"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#predaje -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#predaje">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#Predavac"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#Predmet"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#prenosiVestinu -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#prenosiVestinu">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#Predmet"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#Vestina"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#zahtevaNivo -->
+
+    <owl:ObjectProperty rdf:about="http://www.vbis-projekat.rs/model#zahtevaNivo">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#ZahtevanaVestina"/>
+        <rdfs:range rdf:resource="http://www.vbis-projekat.rs/model#NivoSpremnosti"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#datumObjave -->
+
+    <owl:DatatypeProperty rdf:about="http://www.vbis-projekat.rs/model#datumObjave">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#Oglas"/>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#dateTime"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#imaIme -->
+
+    <owl:DatatypeProperty rdf:about="http://www.vbis-projekat.rs/model#imaIme">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Korisnik"/>
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Predavac"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#imaNaziv -->
+
+    <owl:DatatypeProperty rdf:about="http://www.vbis-projekat.rs/model#imaNaziv">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain>
+            <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Oglas"/>
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Predmet"/>
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Vestina"/>
+                </owl:unionOf>
+            </owl:Class>
+        </rdfs:domain>
+        <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#imaOcenu -->
+
+    <owl:DatatypeProperty rdf:about="http://www.vbis-projekat.rs/model#imaOcenu">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+        <rdfs:domain rdf:resource="http://www.vbis-projekat.rs/model#Polaganje"/>
+        <rdfs:range>
+            <rdfs:Datatype>
+                <owl:oneOf>
+                    <rdf:Description>
+                        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                        <rdf:first rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">10</rdf:first>
+                        <rdf:rest>
+                            <rdf:Description>
+                                <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                <rdf:first rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">6</rdf:first>
+                                <rdf:rest>
+                                    <rdf:Description>
+                                        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                        <rdf:first rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">7</rdf:first>
+                                        <rdf:rest>
+                                            <rdf:Description>
+                                                <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                                <rdf:first rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">8</rdf:first>
+                                                <rdf:rest>
+                                                    <rdf:Description>
+                                                        <rdf:type rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#List"/>
+                                                        <rdf:first rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">9</rdf:first>
+                                                        <rdf:rest rdf:resource="http://www.w3.org/1999/02/22-rdf-syntax-ns#nil"/>
+                                                    </rdf:Description>
+                                                </rdf:rest>
+                                            </rdf:Description>
+                                        </rdf:rest>
+                                    </rdf:Description>
+                                </rdf:rest>
+                            </rdf:Description>
+                        </rdf:rest>
+                    </rdf:Description>
+                </owl:oneOf>
+            </rdfs:Datatype>
+        </rdfs:range>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#AgencijaZaZaposljavanje -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#AgencijaZaZaposljavanje">
+        <rdfs:subClassOf rdf:resource="http://www.vbis-projekat.rs/model#Korisnik"/>
+        <owl:disjointWith rdf:resource="http://www.vbis-projekat.rs/model#Student"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Korisnik -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#Korisnik"/>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#NivoSpremnosti -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#NivoSpremnosti">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:oneOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Napredni"/>
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Pocetni"/>
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Srednji"/>
+                </owl:oneOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Oglas -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#Oglas"/>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Polaganje -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#Polaganje"/>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Predavac -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#Predavac"/>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Predmet -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#Predmet"/>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Prioritet -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#Prioritet">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:oneOf rdf:parseType="Collection">
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Nizak"/>
+                    <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Visok"/>
+                </owl:oneOf>
+            </owl:Class>
+        </owl:equivalentClass>
+    </owl:Class>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Student -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#Student">
+        <rdfs:subClassOf rdf:resource="http://www.vbis-projekat.rs/model#Korisnik"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Vestina -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#Vestina"/>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#ZahtevanaVestina -->
+
+    <owl:Class rdf:about="http://www.vbis-projekat.rs/model#ZahtevanaVestina"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Individuals
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Agencija_IT_Jobs -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Agencija_IT_Jobs">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#AgencijaZaZaposljavanje"/>
+        <model:objavljuje rdf:resource="http://www.vbis-projekat.rs/model#Oglas_Frontend_Developer"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Marko -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Marko">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#Student"/>
+        <model:imaPolaganje rdf:resource="http://www.vbis-projekat.rs/model#Marko_Polaganje_Web"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Marko_Polaganje_Web -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Marko_Polaganje_Web">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#Polaganje"/>
+        <model:odnosiSeNaPredmet rdf:resource="http://www.vbis-projekat.rs/model#Web_programiranje"/>
+        <model:imaOcenu rdf:datatype="http://www.w3.org/2001/XMLSchema#integer">10</model:imaOcenu>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Napredni -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Napredni">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#NivoSpremnosti"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Nizak -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Nizak">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#Prioritet"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Oglas_Frontend_Developer -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Oglas_Frontend_Developer">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#Oglas"/>
+        <model:imaZahtev rdf:resource="http://www.vbis-projekat.rs/model#Zahtev_Za_React"/>
+        <model:imaNaziv>Frontend Developer Role</model:imaNaziv>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Pocetni -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Pocetni">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#NivoSpremnosti"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#React -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#React">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#Vestina"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Srednji -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Srednji">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#NivoSpremnosti"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Visok -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Visok">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#Prioritet"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Web_programiranje -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Web_programiranje">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#Predmet"/>
+        <model:nudiNivo rdf:resource="http://www.vbis-projekat.rs/model#Napredni"/>
+        <model:prenosiVestinu rdf:resource="http://www.vbis-projekat.rs/model#React"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- http://www.vbis-projekat.rs/model#Zahtev_Za_React -->
+
+    <owl:NamedIndividual rdf:about="http://www.vbis-projekat.rs/model#Zahtev_Za_React">
+        <rdf:type rdf:resource="http://www.vbis-projekat.rs/model#ZahtevanaVestina"/>
+        <model:imaPrioritet rdf:resource="http://www.vbis-projekat.rs/model#Visok"/>
+        <model:odnosiSeNaVestinu rdf:resource="http://www.vbis-projekat.rs/model#React"/>
+        <model:zahtevaNivo rdf:resource="http://www.vbis-projekat.rs/model#Napredni"/>
+    </owl:NamedIndividual>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Korisnik"/>
+            <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#NivoSpremnosti"/>
+            <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Oglas"/>
+            <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Polaganje"/>
+            <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Predavac"/>
+            <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Predmet"/>
+            <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Prioritet"/>
+            <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#Vestina"/>
+            <rdf:Description rdf:about="http://www.vbis-projekat.rs/model#ZahtevanaVestina"/>
+        </owl:members>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi -->
+

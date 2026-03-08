@@ -6,6 +6,7 @@ package com.mycompany.vbisapi.service;
 
 import com.arangodb.ArangoDB;
 import com.arangodb.entity.BaseDocument;
+import com.mycompany.vbisapi.model.Oglas;
 import com.mycompany.vbisapi.model.Student;
 
 /**
@@ -14,6 +15,7 @@ import com.mycompany.vbisapi.model.Student;
  */
 public class ArangoService {
     private final ArangoDB arangoDB = new ArangoDB.Builder()
+            .host("127.0.0.1", 8529)
             .user("root")
             .password("")
             .build();
@@ -23,15 +25,20 @@ public class ArangoService {
     public void inicijalizujSistem(){
         if (!arangoDB.getDatabases().contains(dbName)){
             arangoDB.createDatabase(dbName);
-            System.err.println("Baza " + dbName + " je kreirana.");
+            System.out.println("Baza " + dbName + " je kreirana.");
         }
         
         String[] kolekcije = {"studenti", "agencije", "oglasi", "predmeti", "predavaci"};
         
+        java.util.Collection<String> postojeceKol = arangoDB.db(dbName).getCollections()
+                .stream()
+                .map(c -> c.getName())
+                .collect(java.util.stream.Collectors.toList());
+        
         for (String kol : kolekcije){
-            if (!arangoDB.db(dbName).getCollections().contains(kol)){
+            if (!postojeceKol.contains(kol)){
                 arangoDB.db(dbName).createCollection(kol);
-                System.err.println("Kolekcija " + kol + " je kreirana.");
+                System.out.println("Kolekcija " + kol + " je kreirana.");
             }
         }
     }
@@ -47,5 +54,17 @@ public class ArangoService {
         
         arangoDB.db(dbName).collection("studenti").insertDocument(doc);
         System.out.println("Student " + s.getIme() + " uspesno sacuvan u ArangoDB!");
+    }
+    
+    public void sacuvajOglas(Oglas o){
+        BaseDocument doc = new BaseDocument();
+        doc.setKey(o.getId());
+        doc.addAttribute("naslov", o.getNaslov());
+        doc.addAttribute("plata", o.getPlata());
+        doc.addAttribute("nivo", o.getZahtevaniNivo().toString());
+        doc.addAttribute("prioritet", o.getPrioritet().toString());
+        
+        arangoDB.db(dbName).collection("oglas").insertDocument(doc);
+        System.out.println("Oglas '" + o.getNaslov() + "' sacuvan u ArangoDB!");
     }
 }

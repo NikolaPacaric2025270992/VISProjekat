@@ -18,6 +18,15 @@ public class Agencija {
 
     public Agencija() {}
 
+    public Agencija(String id, String nazivAgencije, String pib, String lokacija, String email, String lozinka) {
+        this.id = id;
+        this.nazivAgencije = nazivAgencije;
+        this.pib = pib;
+        this.lokacija = lokacija;
+        this.email = email;
+        this.lozinka = lozinka;
+    }
+
     public String getId() {
         return id;
     }

@@ -16,6 +16,13 @@ public class Predavac {
     
     public Predavac(){}
 
+    public Predavac(String id, String ime, String prezime, String titula) {
+        this.id = id;
+        this.ime = ime;
+        this.prezime = prezime;
+        this.titula = titula;
+    }
+
     public String getId() {
         return id;
     }

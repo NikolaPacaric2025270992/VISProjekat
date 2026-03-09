@@ -12,8 +12,16 @@ public class Predmet {
     private String id;
     private String nazivPredmeta;
     private int ects;
+    private Vestina vestinaId;
     
     public Predmet(){}
+
+    public Predmet(String id, String nazivPredmeta, int ects, Vestina vestinaId) {
+        this.id = id;
+        this.nazivPredmeta = nazivPredmeta;
+        this.ects = ects;
+        this.vestinaId = vestinaId;
+    }
 
     public String getId() {
         return id;
@@ -38,6 +46,12 @@ public class Predmet {
     public void setEcts(int ects) {
         this.ects = ects;
     }
-    
-    
+
+    public Vestina getVestinaId() {
+        return vestinaId;
+    }
+
+    public void setVestinaId(Vestina vestinaId) {
+        this.vestinaId = vestinaId;
+    }
 }

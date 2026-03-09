@@ -18,6 +18,15 @@ public class Student {
 
     public Student() {}
 
+    public Student(String id, String ime, String prezime, String email, String lozinka, String nivoStudija) {
+        this.id = id;
+        this.ime = ime;
+        this.prezime = prezime;
+        this.email = email;
+        this.lozinka = lozinka;
+        this.nivoStudija = nivoStudija;
+    }
+
     public String getId() {
         return id;
     }

@@ -16,6 +16,13 @@ public class Polaganje {
     
     public Polaganje(){}
 
+    public Polaganje(String id, String studentId, String predmetId, int ocena) {
+        this.id = id;
+        this.studentId = studentId;
+        this.predmetId = predmetId;
+        this.ocena = ocena;
+    }
+
     public String getId() {
         return id;
     }

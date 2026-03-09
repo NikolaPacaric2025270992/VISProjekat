@@ -4,7 +4,14 @@
 
 package com.mycompany.vbisapi.vbis_projekat;
 
+import com.mycompany.vbisapi.model.Agencija;
+import com.mycompany.vbisapi.model.NivoSpremnosti;
+import com.mycompany.vbisapi.model.Oglas;
+import com.mycompany.vbisapi.model.Polaganje;
+import com.mycompany.vbisapi.model.Predmet;
+import com.mycompany.vbisapi.model.Prioritet;
 import com.mycompany.vbisapi.model.Student;
+import com.mycompany.vbisapi.model.Vestina;
 import com.mycompany.vbisapi.service.ArangoService;
 import com.mycompany.vbisapi.service.FusekiService;
 import java.io.InputStream;
@@ -21,30 +28,73 @@ import org.apache.jena.rdf.model.ModelFactory;
 public class VBIS_Projekat {
 
     public static void main(String[] args) {
+        ArangoService arango = new ArangoService();
+        FusekiService fuseki = new FusekiService();
         
-        ArangoService arangoService = new ArangoService();
-        FusekiService fusekiService = new FusekiService();
+        System.out.println("Inicijalizujem ArangoDB bazu i kolekcije...");
+        arango.inicijalizujSistem();
+
+        System.out.println("Započinjem sinhronizaciju...");
+
+        // 1. ZAJEDNIČKI OBJEKAT VEŠTINE
+        Vestina javaVestina = new Vestina("Vestina_Java", "Java Programiranje");
+        fuseki.sacuvajVestinuURDF(javaVestina); // <-- OVO JE KLJUČ ZA POPUNJENO POLJE
         
-        try{
-            System.out.println("Zapocinjem povezivanje sa ArangoDB...");
-            
-            arangoService.inicijalizujSistem();
-            
-            Student noviStudent = new Student();
-            noviStudent.setIme("Nikola");
-            noviStudent.setPrezime("Peric");
-            noviStudent.setEmail("nikola.peric@example.com");
-            noviStudent.setNivoStudija("Master");
-            
-            arangoService.sacuvajStudenta(noviStudent);
-            fusekiService.sacuvajStudentaURDF(noviStudent);
-            
-            System.out.println("\n--- TEST PROSAO ---");
-            System.out.println("Idi na 127.0.0.1:8529 uloguj se u bazu 'projekat'");
-            System.out.println("i proveri kolekciju 'studenti'!");
-        }catch (Exception e) {
-            System.err.println("Doslo je do greske pri radu sa ArangoDB:");
-            e.printStackTrace();
-        }
-    }   
+
+        // 2. STUDENT (Dodaj sva polja koja tvoj konstruktor traži: npr. email, lozinka, ime, prezime, indeks, telefon...)
+        Student s = new Student(
+            "2021230000",                     // id (Indeks)
+            "Nikola",                         // ime
+            "Pacaric",                        // prezime
+            "nikola.final@vbis-projekat.rs",  // email
+            "lozinka123",                     // lozinka
+            "Osnovne studije"                 // nivoStudija (umesto broja telefona)
+        );
+        arango.sacuvajStudenta(s);     // Arango čuva SVE (ceo profil)
+        fuseki.sacuvajStudentaURDF(s); // Fuseki uzima samo ime, prezime i email za graf
+
+        // 3. AGENCIJA (PIB, adresa, naziv, email...)
+        Agencija agencija = new Agencija(
+            "agencija_it_solutions",                // id
+            "IT Solutions d.o.o.",                  // nazivAgencije
+            "123456789",                            // pib (ovde ide PIB!)
+            "Bulevar Mihajla Pupina 10, Novi Sad",  // lokacija
+            "it@solutions.rs",                      // email (ovde ide EMAIL!)
+            "lozinka123"                            // lozinka
+        );
+        arango.sacuvajAgenciju(agencija);
+        fuseki.sacuvajAgencijuURDF(agencija);
+
+        // 4. PREDMET (ID, naziv, ECTS, veština)
+        Predmet vis = new Predmet("predmet_vis", "Veb Informacioni Sistemi", 6, javaVestina);
+        arango.sacuvajPredmet(vis);
+        fuseki.sacuvajPredmetURDF(vis);
+
+        // 5. OGLAS (ID, naslov, opis, plata, agencijaId, nivo, prioritet, veština)
+        Oglas oglas = new Oglas(
+            "oglas_java_senior", 
+            "Senior Java Developer", 
+            "Rad na razvoju kompleksnih mikroservisa u Spring Boot-u.", 
+            3500.0, 
+            agencija.getId(), 
+            NivoSpremnosti.NAPREDNI, 
+            Prioritet.VISOK, 
+            javaVestina
+        );
+        arango.sacuvajOglas(oglas);
+        fuseki.sacuvajOglasURDF(oglas);
+
+        // 6. POLAGANJE (ID, studentId, predmetId, ocena)
+        String studentID = s.getEmail().replace("@", "_").replace(".", "_");
+        Polaganje pol = new Polaganje(
+            "polaganje_nikola_vis", 
+            studentID, 
+            vis.getId(), 
+            10
+        );
+        arango.sacuvajPolaganje(pol);
+        fuseki.sacuvajPolaganjeURDF(pol);
+
+        System.out.println("\n[STATUS] Sinhronizacija uspešna za oba sistema!");
+    }
 }

@@ -4,6 +4,8 @@
  */
 package com.mycompany.vbisapi.model;
 
+import java.util.List;
+
 /**
  *
  * @author nikol
@@ -16,11 +18,11 @@ public class Oglas {
     private String agencijaId;
     private NivoSpremnosti zahtevaniNivo;
     private Prioritet prioritet;
-    private Vestina vestinaId;
+    private List<Vestina> zahtevaneVestine;
     
     public Oglas(){}
 
-    public Oglas(String id, String naslov, String opis, double plata, String agencijaId, NivoSpremnosti zahtevaniNivo, Prioritet prioritet, Vestina vestinaId) {
+    public Oglas(String id, String naslov, String opis, double plata, String agencijaId, NivoSpremnosti zahtevaniNivo, Prioritet prioritet, List<Vestina> zahtevaneVestine) {
         this.id = id;
         this.naslov = naslov;
         this.opis = opis;
@@ -28,7 +30,7 @@ public class Oglas {
         this.agencijaId = agencijaId;
         this.zahtevaniNivo = zahtevaniNivo;
         this.prioritet = prioritet;
-        this.vestinaId = vestinaId;
+        this.zahtevaneVestine = zahtevaneVestine;
     }
 
     public String getId() {
@@ -87,11 +89,11 @@ public class Oglas {
         this.prioritet = prioritet;
     }
 
-    public Vestina getVestinaId() {
-        return vestinaId;
+    public List<Vestina> getZahtevaneVestine() {
+        return zahtevaneVestine;
     }
 
-    public void setVestinaId(Vestina vestinaId) {
-        this.vestinaId = vestinaId;
+    public void setZahtevaneVestine(List<Vestina> zahtevaneVestine) {
+        this.zahtevaneVestine = zahtevaneVestine;
     }
 }

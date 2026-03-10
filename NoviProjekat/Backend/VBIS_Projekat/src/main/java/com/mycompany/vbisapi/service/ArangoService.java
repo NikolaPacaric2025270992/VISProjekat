@@ -130,15 +130,23 @@ public class ArangoService {
     public void sacuvajOglas(Oglas o){
         try {
             BaseDocument doc = new BaseDocument();
-        
+
             doc.setKey(o.getId());
             doc.addAttribute("naslov", o.getNaslov());
+            doc.addAttribute("opis", o.getOpis()); // Dodali smo opis
             doc.addAttribute("plata", o.getPlata());
+            doc.addAttribute("agencijaId", o.getAgencijaId()); // Ovo je ključno za filtriranje "mojih oglasa"
             doc.addAttribute("nivo", o.getZahtevaniNivo().toString());
             doc.addAttribute("prioritet", o.getPrioritet().toString());
 
+            // Čuvamo listu veština direktno u Arango dokumentu
+            // Arango drajver će automatski pretvoriti listu objekata u JSON niz
+            if (o.getZahtevaneVestine() != null) {
+                doc.addAttribute("vestine", o.getZahtevaneVestine());
+            }
+
             arangoDB.db(dbName).collection("oglasi").insertDocument(doc);
-            System.out.println("Oglas '" + o.getNaslov() + "' sacuvan u ArangoDB!");
+            System.out.println("Oglas '" + o.getNaslov() + "' uspesno sacuvan u ArangoDB!");
         } catch (Exception e){
             System.err.println("Greška pri čuvanju oglasa u Arango: " + e.getMessage());
         }

@@ -61,13 +61,27 @@ public class FusekiService {
         String nivoID = o.getZahtevaniNivo().toString().substring(0, 1).toUpperCase() 
                       + o.getZahtevaniNivo().toString().substring(1).toLowerCase();
 
+        StringBuilder vestineTriples = new StringBuilder();
+        if (o.getZahtevaneVestine() != null) {
+            for (Vestina v : o.getZahtevaneVestine()) {
+                // Za svaku veštinu dodajemo vezu :traziVestinu
+                vestineTriples.append(" :traziVestinu :").append(v.getId()).append(" ; ");
+            }
+        }
+
+        // 3. Sklapamo finalni SPARQL upit
         String query = MY_PREFIX + RDF_PREFIX + 
                        "INSERT DATA { :" + o.getId() + " rdf:type :Oglas ; " +
                        ":imaNaslov \"" + o.getNaslov() + "\" ; " +
-                       ":imaPrioritet :" + prioritetID + " ; :zahtevaNivo :" + nivoID + " ; " +
-                       ":traziVestinu :" + o.getVestinaId().getId() + " . }";
+                       ":imaPrioritet :" + prioritetID + " ; " +
+                       ":zahtevaNivo :" + nivoID + " ; " +
+                       vestineTriples.toString() + // Ovde se ubacuju sve veštine
+                       ":postavilaAgencija :" + o.getAgencijaId() + " . }";
+
         izvrsiUpdate(query);
-        System.out.println("Oglas '" + o.getNaslov() + "' uspešno sinhronizovan!");
+        System.out.println("Oglas '" + o.getNaslov() + "' sa " + 
+                           (o.getZahtevaneVestine() != null ? o.getZahtevaneVestine().size() : 0) + 
+                           " veština je sinhronizovan!");
     }
     
     public void sacuvajVestinuURDF(Vestina v) {

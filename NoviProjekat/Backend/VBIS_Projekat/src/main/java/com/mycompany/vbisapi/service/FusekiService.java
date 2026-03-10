@@ -8,7 +8,9 @@ import com.mycompany.vbisapi.model.*;
 import org.apache.jena.update.UpdateExecutionFactory;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.jena.update.UpdateRequest;
+import org.springframework.stereotype.Service;
 
+@Service
 public class FusekiService {
     
     private static final String FUSEKI_URL = "http://localhost:3030/vbis_dataset/update";

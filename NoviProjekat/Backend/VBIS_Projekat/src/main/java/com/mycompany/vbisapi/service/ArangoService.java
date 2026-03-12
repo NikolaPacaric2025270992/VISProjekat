@@ -15,6 +15,9 @@ import com.mycompany.vbisapi.model.Student;
 import com.mycompany.vbisapi.model.Vestina;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
+import com.arangodb.ArangoCursor;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  *
@@ -72,6 +75,7 @@ public class ArangoService {
             doc.addAttribute("email", s.getEmail());
             doc.addAttribute("lozinka", s.getLozinka());
             doc.addAttribute("nivoStudija", s.getNivoStudija());
+            doc.addAttribute("traziZaposlenje", s.isTraziZaposlenje());
 
             arangoDB.db(dbName).collection("studenti").insertDocument(doc);
             System.out.println("Student " + s.getIme() + " uspesno sacuvan u ArangoDB!");
@@ -182,6 +186,62 @@ public class ArangoService {
             System.out.println("Veština " + v.getNaziv() + " uspešno sačuvana u ArangoDB!");
         } catch (Exception e) {
             System.err.println("Greška pri čuvanju veštine u Arango: " + e.getMessage());
+        }
+    }
+
+    // --- LOGIN METODE ---
+    public Student loginStudent(String email, String lozinka) {
+        String query = "FOR s IN studenti FILTER s.email == @email AND s.lozinka == @lozinka RETURN s";
+        Map<String, Object> bindVars = new HashMap<>();
+        bindVars.put("email", email);
+        bindVars.put("lozinka", lozinka);
+
+        ArangoCursor<Student> cursor = arangoDB.db(dbName).query(query, Student.class, bindVars, null);
+        return cursor.hasNext() ? cursor.next() : null; // Vraća studenta ako postoji, inače null
+    }
+
+    public Agencija loginAgencija(String email, String lozinka) {
+        String query = "FOR a IN agencije FILTER a.email == @email AND a.lozinka == @lozinka RETURN a";
+        Map<String, Object> bindVars = new HashMap<>();
+        bindVars.put("email", email);
+        bindVars.put("lozinka", lozinka);
+
+        ArangoCursor<Agencija> cursor = arangoDB.db(dbName).query(query, Agencija.class, bindVars, null);
+        return cursor.hasNext() ? cursor.next() : null;
+    }
+
+    // --- UPDATE METODE ---
+    public void azurirajStudenta(Student s) {
+        try {
+            BaseDocument doc = new BaseDocument();
+            doc.addAttribute("ime", s.getIme());
+            doc.addAttribute("prezime", s.getPrezime());
+            doc.addAttribute("email", s.getEmail());
+            doc.addAttribute("lozinka", s.getLozinka());
+            doc.addAttribute("nivoStudija", s.getNivoStudija());
+            doc.addAttribute("traziZaposlenje", s.isTraziZaposlenje());
+
+            String key = s.getEmail().replace("@", "_").replace(".", "_");
+            arangoDB.db(dbName).collection("studenti").updateDocument(key, doc);
+            System.out.println("ArangoDB: Student " + s.getIme() + " ažuriran.");
+        } catch (Exception e) {
+            System.err.println("Greška pri ažuriranju studenta: " + e.getMessage());
+        }
+    }
+
+    public void azurirajAgenciju(Agencija a) {
+        try {
+            BaseDocument doc = new BaseDocument();
+            doc.addAttribute("naziv", a.getNazivAgencije());
+            doc.addAttribute("email", a.getEmail());
+            doc.addAttribute("lozinka", a.getLozinka());
+            doc.addAttribute("lokacija", a.getLokacija());
+            doc.addAttribute("pib", a.getPib());
+
+            arangoDB.db(dbName).collection("agencije").updateDocument(a.getId(), doc);
+            System.out.println("ArangoDB: Agencija " + a.getNazivAgencije() + " ažurirana.");
+        } catch (Exception e) {
+            System.err.println("Greška pri ažuriranju agencije: " + e.getMessage());
         }
     }
 }

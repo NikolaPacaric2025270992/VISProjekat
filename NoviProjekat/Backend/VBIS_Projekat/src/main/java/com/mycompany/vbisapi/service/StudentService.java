@@ -20,6 +20,10 @@ public class StudentService {
     @Autowired
     private FusekiService fusekiService;
     
+    public Student login(String email, String lozinka){
+        return arangoService.loginStudent(email, lozinka);
+    }
+    
     public void registrujStudenta(Student s){
         System.out.println("StudentService: Pokrecem sinhronu registraciju za " + s.getIme());
         
@@ -27,5 +31,10 @@ public class StudentService {
         fusekiService.sacuvajStudentaURDF(s);
         
         System.out.println("StudentService: Registracija uspesno zavrsena u oba sistema.");
+    }
+    
+    public void azurirajStudenta(Student s){
+        arangoService.azurirajStudenta(s);
+        fusekiService.azurirajStudentaURDF(s);
     }
 }

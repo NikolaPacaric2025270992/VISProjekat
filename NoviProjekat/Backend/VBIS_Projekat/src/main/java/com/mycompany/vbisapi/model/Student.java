@@ -15,16 +15,18 @@ public class Student {
     private String email;
     private String lozinka;
     private String nivoStudija;
-
+    private boolean traziZaposlenje;
+    
     public Student() {}
 
-    public Student(String id, String ime, String prezime, String email, String lozinka, String nivoStudija) {
+    public Student(String id, String ime, String prezime, String email, String lozinka, String nivoStudija, boolean traziZaposlenje) {
         this.id = id;
         this.ime = ime;
         this.prezime = prezime;
         this.email = email;
         this.lozinka = lozinka;
         this.nivoStudija = nivoStudija;
+        this.traziZaposlenje = traziZaposlenje;
     }
 
     public String getId() {
@@ -73,5 +75,13 @@ public class Student {
 
     public void setNivoStudija(String nivoStudija) {
         this.nivoStudija = nivoStudija;
+    }
+    
+    public boolean isTraziZaposlenje(){
+        return traziZaposlenje;
+    }
+    
+    public void setTraziZaposlenje(boolean traziZaposlenje){
+        this.traziZaposlenje = traziZaposlenje;
     }
 }

@@ -21,10 +21,19 @@ public class AgencijaService {
     @Autowired
     private FusekiService fuseki;
     
+    public Agencija login(String email, String lozinka){
+        return arango.loginAgencija(email, lozinka);
+    }
+    
     public void registrujAgenciju(Agencija a){
         arango.sacuvajAgenciju(a);
         fuseki.sacuvajAgencijuURDF(a);
         
         System.out.println("AgencijaService: Agencija '" + a.getNazivAgencije() + "' je u oba sistema!");
+    }
+    
+    public void azurirajAgenciju(Agencija a){
+        arango.azurirajAgenciju(a);
+        fuseki.azurirajAgencijuURDF(a);
     }
 }

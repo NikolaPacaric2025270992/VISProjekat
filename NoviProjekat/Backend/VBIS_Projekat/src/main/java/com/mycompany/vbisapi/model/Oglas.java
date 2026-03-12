@@ -16,20 +16,16 @@ public class Oglas {
     private String opis;
     private double plata;
     private String agencijaId;
-    private NivoSpremnosti zahtevaniNivo;
-    private Prioritet prioritet;
-    private List<Vestina> zahtevaneVestine;
+    private List<OglasVestina> zahtevaneVestine;
     
     public Oglas(){}
 
-    public Oglas(String id, String naslov, String opis, double plata, String agencijaId, NivoSpremnosti zahtevaniNivo, Prioritet prioritet, List<Vestina> zahtevaneVestine) {
+    public Oglas(String id, String naslov, String opis, double plata, String agencijaId, List<OglasVestina> zahtevaneVestine) {
         this.id = id;
         this.naslov = naslov;
         this.opis = opis;
         this.plata = plata;
         this.agencijaId = agencijaId;
-        this.zahtevaniNivo = zahtevaniNivo;
-        this.prioritet = prioritet;
         this.zahtevaneVestine = zahtevaneVestine;
     }
 
@@ -73,27 +69,11 @@ public class Oglas {
         this.agencijaId = agencijaId;
     }
 
-    public NivoSpremnosti getZahtevaniNivo() {
-        return zahtevaniNivo;
-    }
-
-    public void setZahtevaniNivo(NivoSpremnosti zahtevaniNivo) {
-        this.zahtevaniNivo = zahtevaniNivo;
-    }
-
-    public Prioritet getPrioritet() {
-        return prioritet;
-    }
-
-    public void setPrioritet(Prioritet prioritet) {
-        this.prioritet = prioritet;
-    }
-
-    public List<Vestina> getZahtevaneVestine() {
+    public List<OglasVestina> getZahtevaneVestine() {
         return zahtevaneVestine;
     }
 
-    public void setZahtevaneVestine(List<Vestina> zahtevaneVestine) {
+    public void setZahtevaneVestine(List<OglasVestina> zahtevaneVestine) {
         this.zahtevaneVestine = zahtevaneVestine;
-    }
+    } 
 }

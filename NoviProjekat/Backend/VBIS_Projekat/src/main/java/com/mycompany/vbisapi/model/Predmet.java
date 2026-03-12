@@ -12,15 +12,19 @@ public class Predmet {
     private String id;
     private String nazivPredmeta;
     private int ects;
-    private Vestina vestinaId;
+    private Vestina vestina;
+    private NivoSpremnosti nivoKojiNudi;
+    private String predavacId;
     
     public Predmet(){}
 
-    public Predmet(String id, String nazivPredmeta, int ects, Vestina vestinaId) {
+    public Predmet(String id, String nazivPredmeta, int ects, Vestina vestina, NivoSpremnosti nivoKojiNudi, String predavacId) {
         this.id = id;
         this.nazivPredmeta = nazivPredmeta;
         this.ects = ects;
-        this.vestinaId = vestinaId;
+        this.vestina = vestina;
+        this.nivoKojiNudi = nivoKojiNudi;
+        this.predavacId = predavacId;
     }
 
     public String getId() {
@@ -47,11 +51,28 @@ public class Predmet {
         this.ects = ects;
     }
 
-    public Vestina getVestinaId() {
-        return vestinaId;
+    public Vestina getVestina() {
+        return vestina;
     }
 
-    public void setVestinaId(Vestina vestinaId) {
-        this.vestinaId = vestinaId;
+    public void setVestina(Vestina vestina) {
+        this.vestina = vestina;
     }
+
+    public NivoSpremnosti getNivoKojiNudi() {
+        return nivoKojiNudi;
+    }
+
+    public void setNivoKojiNudi(NivoSpremnosti nivoKojiNudi) {
+        this.nivoKojiNudi = nivoKojiNudi;
+    }
+
+    public String getPredavacId() {
+        return predavacId;
+    }
+
+    public void setPredavacId(String predavacId) {
+        this.predavacId = predavacId;
+    }
+    
 }

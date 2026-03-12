@@ -9,6 +9,7 @@ import com.arangodb.entity.BaseDocument;
 import com.mycompany.vbisapi.model.Agencija;
 import com.mycompany.vbisapi.model.Oglas;
 import com.mycompany.vbisapi.model.Polaganje;
+import com.mycompany.vbisapi.model.Predavac;
 import com.mycompany.vbisapi.model.Predmet;
 import com.mycompany.vbisapi.model.Student;
 import com.mycompany.vbisapi.model.Vestina;
@@ -96,18 +97,35 @@ public class ArangoService {
         }
     }
     
-    public void sacuvajPredmet(Predmet p){
+    public void sacuvajPredmet(Predmet p) {
         try {
             BaseDocument doc = new BaseDocument();
-        
             doc.setKey(p.getId());
             doc.addAttribute("naziv", p.getNazivPredmeta());
             doc.addAttribute("ects", p.getEcts());
+            doc.addAttribute("nivo", p.getNivoKojiNudi().toString());
+            doc.addAttribute("vestinaId", p.getVestina().getId());
+            doc.addAttribute("predavacId", p.getPredavacId());
 
             arangoDB.db(dbName).collection("predmeti").insertDocument(doc);
-            System.out.println("Predmet " + p.getNazivPredmeta() + " uspesno sacuvan u ArangoDB!");
-        } catch (Exception e){
-            System.err.println("Greška pri čuvanju predmeta u Arango: " + e.getMessage());
+            System.out.println("Predmet " + p.getNazivPredmeta() + " sačuvan u ArangoDB!");
+        } catch (Exception e) {
+            System.err.println("Greška Arango Predmet: " + e.getMessage());
+        }
+    }
+    
+    public void sacuvajPredavaca(Predavac pr) {
+        try {
+            BaseDocument doc = new BaseDocument();
+            doc.setKey(pr.getId());
+            doc.addAttribute("ime", pr.getIme());
+            doc.addAttribute("prezime", pr.getPrezime());
+            doc.addAttribute("titula", pr.getTitula());
+
+            arangoDB.db(dbName).collection("predavaci").insertDocument(doc);
+            System.out.println("Predavač sačuvan u ArangoDB!");
+        } catch (Exception e) {
+            System.err.println("Greška Arango Predavač: " + e.getMessage());
         }
     }
     
@@ -133,20 +151,21 @@ public class ArangoService {
 
             doc.setKey(o.getId());
             doc.addAttribute("naslov", o.getNaslov());
-            doc.addAttribute("opis", o.getOpis()); // Dodali smo opis
+            doc.addAttribute("opis", o.getOpis());
             doc.addAttribute("plata", o.getPlata());
-            doc.addAttribute("agencijaId", o.getAgencijaId()); // Ovo je ključno za filtriranje "mojih oglasa"
-            doc.addAttribute("nivo", o.getZahtevaniNivo().toString());
-            doc.addAttribute("prioritet", o.getPrioritet().toString());
+            doc.addAttribute("agencijaId", o.getAgencijaId());
 
-            // Čuvamo listu veština direktno u Arango dokumentu
-            // Arango drajver će automatski pretvoriti listu objekata u JSON niz
+            // VIŠE NE STAVLJAMO nivo i prioritet na vrh dokumenta jer su oni 
+            // sada specifični za svaku veštinu unutar liste zahteva.
+
             if (o.getZahtevaneVestine() != null) {
-                doc.addAttribute("vestine", o.getZahtevaneVestine());
+                // ArangoDB drajver će automatski List<OglasVestina> pretvoriti u 
+                // JSON niz objekata, gde svaki sadrži veštinu, nivo i prioritet.
+                doc.addAttribute("zahtevi", o.getZahtevaneVestine());
             }
 
             arangoDB.db(dbName).collection("oglasi").insertDocument(doc);
-            System.out.println("Oglas '" + o.getNaslov() + "' uspesno sacuvan u ArangoDB!");
+            System.out.println("Oglas '" + o.getNaslov() + "' uspješno sačuvan u ArangoDB sa kompleksnim zahtjevima!");
         } catch (Exception e){
             System.err.println("Greška pri čuvanju oglasa u Arango: " + e.getMessage());
         }

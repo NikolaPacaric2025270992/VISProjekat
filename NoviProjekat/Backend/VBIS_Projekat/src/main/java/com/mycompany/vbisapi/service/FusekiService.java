@@ -37,11 +37,23 @@ public class FusekiService {
     }
 
     public void sacuvajPredmetURDF(Predmet p) {
+        // Formatiranje nivoa za RDF (npr. "Napredni", "Srednji")
+        String nivoIndiv = p.getNivoKojiNudi().toString().substring(0, 1).toUpperCase() 
+                         + p.getNivoKojiNudi().toString().substring(1).toLowerCase();
+
         String query = MY_PREFIX + RDF_PREFIX + 
-                       "INSERT DATA { :" + p.getId() + " rdf:type :Predmet ; :imaNazivPredmeta \"" + p.getNazivPredmeta() + "\" ; " +
-                        ":prenosiVestinu :" + p.getVestinaId().getId() + " .}";
+                       "INSERT DATA { " +
+                       ":" + p.getId() + " rdf:type :Predmet ; " +
+                       ":imaNaziv \"" + p.getNazivPredmeta() + "\" ; " +
+                       ":prenosiVestinu :" + p.getVestina().getId() + " ; " +
+                       ":nudiNivo :" + nivoIndiv + " . \n" +
+
+                       // Veza: Predavac predaje Predmet
+                       ":" + p.getPredavacId() + " :predaje :" + p.getId() + " . " +
+                       "}";
+
         izvrsiUpdate(query);
-        System.out.println("Predmet " + p.getNazivPredmeta() + " poslat u Fuseki!");
+        System.out.println("Predmet " + p.getNazivPredmeta() + " povezan u grafu sa nivoom i predavačem!");
     }
 
     public void sacuvajPolaganjeURDF(Polaganje pol) {
@@ -54,34 +66,58 @@ public class FusekiService {
         System.out.println("Polaganje povezano u Fuseki grafu!");
     }
     
+    public void sacuvajPredavacaURDF(Predavac pr) {
+        String query = MY_PREFIX + RDF_PREFIX + 
+                       "INSERT DATA { :" + pr.getId() + " rdf:type :Predavac ; " +
+                       ":imaIme \"" + pr.getIme() + "\" ; " +
+                       ":imaPrezime \"" + pr.getPrezime() + "\" ; " +
+                       ":imaTitulu \"" + pr.getTitula() + "\" . }";
+        izvrsiUpdate(query);
+        System.out.println("Predavač " + pr.getIme() + " " + pr.getPrezime() + " poslat u Fuseki!");
+    }
+    
     public void sacuvajOglasURDF(Oglas o) {
-        String prioritetID = o.getPrioritet().toString().substring(0, 1).toUpperCase() 
-                           + o.getPrioritet().toString().substring(1).toLowerCase();
-        
-        String nivoID = o.getZahtevaniNivo().toString().substring(0, 1).toUpperCase() 
-                      + o.getZahtevaniNivo().toString().substring(1).toLowerCase();
+        StringBuilder triples = new StringBuilder();
 
-        StringBuilder vestineTriples = new StringBuilder();
+        // 1. Definišemo Oglas i njegov naziv (imaNaziv se koristi za Oglas u RDF-u) [cite: 9, 25]
+        triples.append(":").append(o.getId()).append(" rdf:type :Oglas ; ");
+        triples.append(":imaNaziv \"").append(o.getNaslov()).append("\" . \n");
+
+        // 2. Agencija objavljuje oglas [cite: 4, 28]
+        triples.append(":").append(o.getAgencijaId()).append(" :objavljuje :").append(o.getId()).append(" . \n");
+
+        // 3. Prolazimo kroz listu OglasVestina (N-ary relacija)
         if (o.getZahtevaneVestine() != null) {
-            for (Vestina v : o.getZahtevaneVestine()) {
-                // Za svaku veštinu dodajemo vezu :traziVestinu
-                vestineTriples.append(" :traziVestinu :").append(v.getId()).append(" ; ");
+            for (OglasVestina ov : o.getZahtevaneVestine()) {
+                // Generišemo unikatan ID za čvor ZahtevanaVestina (npr. Zahtev_Oglas1_Java)
+                String zahtevId = "Zahtev_" + o.getId() + "_" + ov.getVestina().getId();
+
+                // Povezujemo Oglas sa Zahtevom 
+                triples.append(":").append(o.getId()).append(" :imaZahtev :").append(zahtevId).append(" . \n");
+
+                // Definišemo čvor ZahtevanaVestina [cite: 27]
+                triples.append(":").append(zahtevId).append(" rdf:type :ZahtevanaVestina ; \n");
+
+                // Povezujemo sa konkretnom veštinom 
+                triples.append("  :odnosiSeNaVestinu :").append(ov.getVestina().getId()).append(" ; \n");
+
+                // Formatiranje nivoa i prioriteta da odgovara tvom RDF-u (npr. "Napredni", "Visok") [cite: 24, 26]
+                String nivoIndiv = ov.getNivo().toString().substring(0, 1).toUpperCase() 
+                                 + ov.getNivo().toString().substring(1).toLowerCase();
+                String prioritetIndiv = ov.getPrioritet().toString().substring(0, 1).toUpperCase() 
+                                      + ov.getPrioritet().toString().substring(1).toLowerCase();
+
+                // Dodajemo nivo i prioritet na Zahtev, ne na Oglas 
+                triples.append("  :zahtevaNivo :").append(nivoIndiv).append(" ; \n");
+                triples.append("  :imaPrioritet :").append(prioritetIndiv).append(" . \n");
             }
         }
 
-        // 3. Sklapamo finalni SPARQL upit
-        String query = MY_PREFIX + RDF_PREFIX + 
-                       "INSERT DATA { :" + o.getId() + " rdf:type :Oglas ; " +
-                       ":imaNaslov \"" + o.getNaslov() + "\" ; " +
-                       ":imaPrioritet :" + prioritetID + " ; " +
-                       ":zahtevaNivo :" + nivoID + " ; " +
-                       vestineTriples.toString() + // Ovde se ubacuju sve veštine
-                       ":postavilaAgencija :" + o.getAgencijaId() + " . }";
-
+        // Slanje SPARQL upita
+        String query = MY_PREFIX + RDF_PREFIX + "INSERT DATA { " + triples.toString() + " }";
         izvrsiUpdate(query);
-        System.out.println("Oglas '" + o.getNaslov() + "' sa " + 
-                           (o.getZahtevaneVestine() != null ? o.getZahtevaneVestine().size() : 0) + 
-                           " veština je sinhronizovan!");
+
+        System.out.println("Oglas '" + o.getNaslov() + "' je sinhronizovan kao N-ary struktura.");
     }
     
     public void sacuvajVestinuURDF(Vestina v) {

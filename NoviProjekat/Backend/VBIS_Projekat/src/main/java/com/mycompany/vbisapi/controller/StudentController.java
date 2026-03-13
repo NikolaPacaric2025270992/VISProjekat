@@ -5,9 +5,12 @@
 package com.mycompany.vbisapi.controller;
 
 import com.mycompany.vbisapi.model.LoginDTO;
+import com.mycompany.vbisapi.model.Polaganje;
 import com.mycompany.vbisapi.model.PreporuceniOglas;
 import com.mycompany.vbisapi.model.Student;
 import com.mycompany.vbisapi.service.FusekiService;
+import com.mycompany.vbisapi.service.ImportService;
+import com.mycompany.vbisapi.service.PolaganjeService;
 import com.mycompany.vbisapi.service.StudentService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  *
@@ -32,6 +36,12 @@ public class StudentController {
     
     @Autowired
     private StudentService studentService;
+    
+    @Autowired
+    private ImportService importService;
+    
+    @Autowired
+    private PolaganjeService polaganjeService;
     
     @PostMapping("/login")
     public ResponseEntity<?> loginStudent(@RequestBody LoginDTO loginPodaci) {
@@ -63,9 +73,33 @@ public class StudentController {
         }
     }
     
+    @PostMapping("/upload-polaganja")
+    public ResponseEntity<?> uploadPolaganja(@RequestParam("fajl") MultipartFile fajl) {
+        try {
+            // 1. Validacija i parsiranje
+            List<Polaganje> novaPolaganja = importService.obradiFajlSaPolaganjima(fajl);
+            
+            // 2. Čuvanje u bazu (Arango i Fuseki)
+            int brojSacuvanih = 0;
+            for (Polaganje p : novaPolaganja) {
+                polaganjeService.dodajPolaganje(p);
+                brojSacuvanih++;
+            }
+            
+            return ResponseEntity.ok("Uspešno validirano i sačuvano " + brojSacuvanih + " položenih ispita.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Greška pri uploadu polaganja: " + e.getMessage());
+        }
+    }
+    
     @GetMapping("/{email}/preporuke")
-    public List<PreporuceniOglas> getPreporuke(@PathVariable String email) {
-        return fusekiService.getPreporukeZaStudenta(email);
+    public List<PreporuceniOglas> getPreporuke(
+            @PathVariable String email,
+            @RequestParam(defaultValue = "1") int stranica,
+            @RequestParam(defaultValue = "5") int poStranici) {
+            
+        return fusekiService.getPreporukeZaStudenta(email, stranica, poStranici);
     }
     
     @GetMapping("/provera")

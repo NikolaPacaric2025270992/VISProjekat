@@ -4,16 +4,6 @@
 
 package com.mycompany.vbisapi.vbis_projekat;
 
-import com.mycompany.vbisapi.model.Agencija;
-import com.mycompany.vbisapi.model.NivoSpremnosti;
-import com.mycompany.vbisapi.model.Oglas;
-import com.mycompany.vbisapi.model.Polaganje;
-import com.mycompany.vbisapi.model.Predmet;
-import com.mycompany.vbisapi.model.Prioritet;
-import com.mycompany.vbisapi.model.Student;
-import com.mycompany.vbisapi.model.Vestina;
-import com.mycompany.vbisapi.service.ArangoService;
-import com.mycompany.vbisapi.service.FusekiService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;

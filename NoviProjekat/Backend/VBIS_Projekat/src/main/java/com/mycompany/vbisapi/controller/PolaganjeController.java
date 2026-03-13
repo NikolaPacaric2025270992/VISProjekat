@@ -26,7 +26,7 @@ public class PolaganjeController {
     @PostMapping("/dodaj")
     public String dodajPolaganje(@RequestBody Polaganje p){
         try {
-            polaganjeService.dodajPoaganje(p);
+            polaganjeService.dodajPolaganje(p);
             return "Uspeh: Polaganje za studenta " + p.getStudentId() + " je evidentirano!";
         } catch (Exception e){
             return "Greska pri evidentiranju polaganja: " + e.getMessage();

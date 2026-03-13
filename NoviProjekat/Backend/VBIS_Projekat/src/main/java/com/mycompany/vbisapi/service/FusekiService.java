@@ -30,8 +30,10 @@ public class FusekiService {
         System.out.println("Student " + s.getIme() + " (Traži posao: " + s.isTraziZaposlenje() + ") poslat u Fuseki!");
     }
 
-    public List<RangiraniStudent> getRangListaStudenata(String oglasId) {
+    // --- Istu stvar radimo za rang listu agencije ---
+    public List<RangiraniStudent> getRangListaStudenata(String oglasId, int stranica, int poStranici) {
         List<RangiraniStudent> lista = new ArrayList<>();
+        int offset = (stranica - 1) * poStranici;
 
         String sparqlQuery = MY_PREFIX + RDF_PREFIX +
             "SELECT ?studentID ?ime ?prezime (SUM(?score) AS ?ukupniBodovi) WHERE { " +
@@ -40,11 +42,11 @@ public class FusekiService {
             "  ?polaganje :imaStudenta ?studentID ; :imaPredmet ?predmet ; :imaOcenu ?ocena . " +
             "  ?predmet :prenosiVestinu ?vestina ; :nudiNivo ?nivoStudenta . " +
             "  ?studentID :imaIme ?ime ; :imaPrezime ?prezime ; :traziZaposlenje true . " +
-            "  # Bodovanje: Ocena * 2 + bonus za prioritet (Visok=50, Srednji=20, Nizak=5) " +
             "  BIND((?ocena * 2) AS ?ocenaBodovi) " +
             "  BIND(IF(?prioritet = :Visok, 50, IF(?prioritet = :Srednji, 20, 5)) AS ?prioritetBodovi) " +
             "  BIND(?ocenaBodovi + ?prioritetBodovi AS ?score) " +
-            "} GROUP BY ?studentID ?ime ?prezime ORDER BY DESC(?ukupniBodovi)";
+            "} GROUP BY ?studentID ?ime ?prezime ORDER BY DESC(?ukupniBodovi) " +
+            "LIMIT " + poStranici + " OFFSET " + offset; // <--- PAGINACIJA
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(FUSEKI_QUERY_URL, sparqlQuery)) {
             ResultSet results = qexec.execSelect();
@@ -61,9 +63,13 @@ public class FusekiService {
         return lista;
     }
 
-    public List<PreporuceniOglas> getPreporukeZaStudenta(String studentEmail) {
+    // --- DODATO: stranica i poStranici ---
+    public List<PreporuceniOglas> getPreporukeZaStudenta(String studentEmail, int stranica, int poStranici) {
         String studentID = studentEmail.replace("@", "_").replace(".", "_");
         List<PreporuceniOglas> preporuke = new ArrayList<>();
+
+        // Računanje OFFSET-a
+        int offset = (stranica - 1) * poStranici;
 
         String sparqlQuery = MY_PREFIX + RDF_PREFIX +
             "SELECT ?oglasID ?naslov (SUM(?score) AS ?ukupniBodovi) WHERE { " +
@@ -72,7 +78,8 @@ public class FusekiService {
             "  ?polaganje :imaStudenta :" + studentID + " ; :imaPredmet ?predmet ; :imaOcenu ?ocena . " +
             "  ?predmet :prenosiVestinu ?vestina ; :nudiNivo ?nivoStudenta . " +
             "  BIND((?ocena * 2) + IF(?prioritet = :Visok, 50, IF(?prioritet = :Srednji, 20, 5)) AS ?score) " +
-            "} GROUP BY ?oglasID ?naslov ORDER BY DESC(?ukupniBodovi)";
+            "} GROUP BY ?oglasID ?naslov ORDER BY DESC(?ukupniBodovi) " +
+            "LIMIT " + poStranici + " OFFSET " + offset; // <--- PAGINACIJA DODATA OVDE
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(FUSEKI_QUERY_URL, sparqlQuery)) {
             ResultSet results = qexec.execSelect();
@@ -84,6 +91,8 @@ public class FusekiService {
                     soln.get("ukupniBodovi").asLiteral().getDouble()
                 ));
             }
+        } catch (Exception e) {
+            System.err.println("Greska pri preporuci: " + e.getMessage());
         }
         return preporuke;
     }

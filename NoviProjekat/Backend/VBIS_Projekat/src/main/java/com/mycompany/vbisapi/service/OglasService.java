@@ -44,6 +44,7 @@ public class OglasService {
         // Čuvamo oglas u Fuseki (sa N-ary relacijama)
         fuseki.sacuvajOglasURDF(o);
         
-        System.out.println("OglasService: Oglas '" + o.getNaslov() + "' je potpuno sinhronizovan.");
+        System.out.println("OglasService: Oglas '" + 
+                            o.getNaslov() + "' je potpuno sinhronizovan.");
     }      
 }

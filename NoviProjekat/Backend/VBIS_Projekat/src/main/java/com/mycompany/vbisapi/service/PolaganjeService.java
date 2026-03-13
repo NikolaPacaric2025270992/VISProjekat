@@ -21,7 +21,7 @@ public class PolaganjeService {
     @Autowired
     private FusekiService fuseki;
     
-    public void dodajPoaganje(Polaganje p){
+    public void dodajPolaganje(Polaganje p){
         arango.sacuvajPolaganje(p);
         fuseki.sacuvajPolaganjeURDF(p);
         System.out.println("PolaganjeService: Polaganje uspesno evidentirano u oba sistema.");

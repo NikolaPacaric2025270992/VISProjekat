@@ -5,8 +5,7 @@
 package com.mycompany.vbisapi.service;
 
 import com.mycompany.vbisapi.model.Oglas;
-import com.mycompany.vbisapi.model.OglasVestina;
-import com.mycompany.vbisapi.model.Vestina;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,19 +23,6 @@ public class OglasService {
     private FusekiService fuseki;
     
     public void postaviOglas(Oglas o){
-        // Prolazimo kroz listu asocijativnih objekata OglasVestina
-        if (o.getZahtevaneVestine() != null){
-            for (OglasVestina ov : o.getZahtevaneVestine()){ 
-                // Izvlačimo samu veštinu iz asocijativnog objekta
-                Vestina v = ov.getVestina(); 
-                
-                // Osiguravamo da veština postoji u obe baze pre nego što vežemo oglas za nju
-                fuseki.sacuvajVestinuURDF(v);
-                arango.sacuvajVestinu(v); 
-                
-                System.out.println("Osigurana vestina: " + v.getNaziv());
-            }
-        }
         
         // Čuvamo oglas u ArangoDB (sa ugnježdenim zahtevima)
         arango.sacuvajOglas(o);
@@ -46,5 +32,9 @@ public class OglasService {
         
         System.out.println("OglasService: Oglas '" + 
                             o.getNaslov() + "' je potpuno sinhronizovan.");
-    }      
+    }
+    
+    public List<Oglas> nadjiOglaseAgencije(String agencijaId) {
+        return arango.nadjiOglasePoAgenciji(agencijaId);
+    }
 }

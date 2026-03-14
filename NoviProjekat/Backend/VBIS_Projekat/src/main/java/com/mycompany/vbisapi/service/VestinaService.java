@@ -5,6 +5,7 @@
 package com.mycompany.vbisapi.service;
 
 import com.mycompany.vbisapi.model.Vestina;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,5 +27,9 @@ public class VestinaService {
         fuseki.sacuvajVestinuURDF(v);
         System.out.println("VestinaService: Vestina '" + 
                             v.getNaziv() + "' je sinhronizovana.");
+    }
+    
+    public List<Vestina> sveVestine() {
+        return arango.sveVestine();
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import com.arangodb.ArangoCursor;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  *
@@ -69,7 +70,11 @@ public class ArangoService {
         try{
             BaseDocument doc = new BaseDocument();
         
-            doc.setKey(s.getEmail().replace("@", "_").replace(".", "_"));
+            String generisanId = s.getEmail().replace("@", "_").replace(".", "_");
+            s.setId(generisanId); // Setujemo ga i u Java objektu
+            
+            doc.setKey(generisanId);
+            doc.addAttribute("id", generisanId); // <--- OVO SPAŠAVA STVAR
             doc.addAttribute("ime", s.getIme());
             doc.addAttribute("prezime", s.getPrezime());
             doc.addAttribute("email", s.getEmail());
@@ -88,11 +93,16 @@ public class ArangoService {
         try{
             BaseDocument doc = new BaseDocument();
         
-            doc.setKey(a.getId());
-            doc.addAttribute("naziv", a.getNazivAgencije());
+            String generisanId = a.getEmail().replace("@", "_").replace(".", "_");
+            a.setId(generisanId); // Osiguravamo da i Java objekat zna svoj ID
+            
+            doc.setKey(generisanId);
+            doc.addAttribute("id", generisanId); // <--- OVO SPAŠAVA STVAR
+            doc.addAttribute("nazivAgencije", a.getNazivAgencije());
             doc.addAttribute("email", a.getEmail());
-            doc.addAttribute("lozinka", a.getLozinka()); // DODATO
+            doc.addAttribute("lozinka", a.getLozinka()); 
             doc.addAttribute("pib", a.getPib());
+            doc.addAttribute("lokacija", a.getLokacija());
 
             arangoDB.db(dbName).collection("agencije").insertDocument(doc);
             System.out.println("Agencija " + a.getNazivAgencije() + " uspesno sacuvana u ArangoDB!");
@@ -165,7 +175,7 @@ public class ArangoService {
             if (o.getZahtevaneVestine() != null) {
                 // ArangoDB drajver će automatski List<OglasVestina> pretvoriti u 
                 // JSON niz objekata, gde svaki sadrži veštinu, nivo i prioritet.
-                doc.addAttribute("zahtevi", o.getZahtevaneVestine());
+                doc.addAttribute("zahtevaneVestine", o.getZahtevaneVestine());
             }
 
             arangoDB.db(dbName).collection("oglasi").insertDocument(doc);
@@ -197,7 +207,14 @@ public class ArangoService {
         bindVars.put("lozinka", lozinka);
 
         ArangoCursor<Student> cursor = arangoDB.db(dbName).query(query, Student.class, bindVars, null);
-        return cursor.hasNext() ? cursor.next() : null; // Vraća studenta ako postoji, inače null
+        Student ulogovan = cursor.hasNext() ? cursor.next() : null; 
+        
+        // DODATO: Ručno vraćamo ID!
+        if (ulogovan != null) {
+            ulogovan.setId(email.replace("@", "_").replace(".", "_"));
+        }
+        
+        return ulogovan;
     }
 
     public Agencija loginAgencija(String email, String lozinka) {
@@ -207,7 +224,14 @@ public class ArangoService {
         bindVars.put("lozinka", lozinka);
 
         ArangoCursor<Agencija> cursor = arangoDB.db(dbName).query(query, Agencija.class, bindVars, null);
-        return cursor.hasNext() ? cursor.next() : null;
+        Agencija ulogovana = cursor.hasNext() ? cursor.next() : null;
+        
+        // DODATO: Ručno vraćamo ID!
+        if (ulogovana != null) {
+            ulogovana.setId(email.replace("@", "_").replace(".", "_"));
+        }
+        
+        return ulogovana;
     }
 
     // --- UPDATE METODE ---
@@ -242,6 +266,31 @@ public class ArangoService {
             System.out.println("ArangoDB: Agencija " + a.getNazivAgencije() + " ažurirana.");
         } catch (Exception e) {
             System.err.println("Greška pri ažuriranju agencije: " + e.getMessage());
+        }
+    }
+    
+    public List<Vestina> sveVestine() {
+        String query = "FOR v IN vestine RETURN v";
+        try {
+            ArangoCursor<Vestina> cursor = arangoDB.db(dbName).query(query, Vestina.class, null, null);
+            return cursor.asListRemaining();
+        } catch (Exception e) {
+            System.err.println("Greška pri dohvatanju veština: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
+    }
+    
+    public java.util.List<Oglas> nadjiOglasePoAgenciji(String agencijaId) {
+        String query = "FOR o IN oglasi FILTER o.agencijaId == @agencijaId RETURN o";
+        Map<String, Object> bindVars = new HashMap<>();
+        bindVars.put("agencijaId", agencijaId);
+
+        try {
+            ArangoCursor<Oglas> cursor = arangoDB.db(dbName).query(query, Oglas.class, bindVars, null);
+            return cursor.asListRemaining();
+        } catch (Exception e) {
+            System.err.println("Greška pri preuzimanju oglasa agencije: " + e.getMessage());
+            return java.util.Collections.emptyList();
         }
     }
 }

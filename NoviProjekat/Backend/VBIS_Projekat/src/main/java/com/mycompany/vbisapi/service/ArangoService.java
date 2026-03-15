@@ -40,7 +40,7 @@ public class ArangoService {
         try{
             inicijalizujSistem();
         } catch (Exception e){
-            System.err.println("Greška pri inicijalizaciji Arango servera: " + e.getMessage());
+            System.err.println("Greska pri inicijalizaciji Arango servera: " + e.getMessage());
         }
         
     }
@@ -107,7 +107,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("agencije").insertDocument(doc);
             System.out.println("Agencija " + a.getNazivAgencije() + " uspesno sacuvana u ArangoDB!");
         } catch (Exception e){
-            System.err.println("Greška pri čuvanju agencije u Arango: " + e.getMessage());
+            System.err.println("Greska pri čuvanju agencije u Arango: " + e.getMessage());
         }
     }
     
@@ -124,7 +124,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("predmeti").insertDocument(doc);
             System.out.println("Predmet " + p.getNazivPredmeta() + " sačuvan u ArangoDB!");
         } catch (Exception e) {
-            System.err.println("Greška Arango Predmet: " + e.getMessage());
+            System.err.println("Greska Arango Predmet: " + e.getMessage());
         }
     }
     
@@ -139,7 +139,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("predavaci").insertDocument(doc);
             System.out.println("Predavač sačuvan u ArangoDB!");
         } catch (Exception e) {
-            System.err.println("Greška Arango Predavač: " + e.getMessage());
+            System.err.println("Greska Arango Predavač: " + e.getMessage());
         }
     }
     
@@ -269,6 +269,21 @@ public class ArangoService {
         }
     }
     
+    public java.util.List<Oglas> nadjiOglasePoAgenciji(String agencijaId) {
+        // MERGE automatski dodaje polje 'id' u JSON rezultat koristeći postojeći '_key'
+        String query = "FOR o IN oglasi FILTER o.agencijaId == @agencijaId RETURN MERGE(o, { id: o._key })";
+        Map<String, Object> bindVars = new HashMap<>();
+        bindVars.put("agencijaId", agencijaId);
+
+        try {
+            com.arangodb.ArangoCursor<Oglas> cursor = arangoDB.db(dbName).query(query, Oglas.class, bindVars, null);
+            return cursor.asListRemaining();
+        } catch (Exception e) {
+            System.err.println("Greška pri preuzimanju oglasa agencije: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
+    }
+    
     public List<Vestina> sveVestine() {
         String query = "FOR v IN vestine RETURN v";
         try {
@@ -280,16 +295,89 @@ public class ArangoService {
         }
     }
     
-    public java.util.List<Oglas> nadjiOglasePoAgenciji(String agencijaId) {
-        String query = "FOR o IN oglasi FILTER o.agencijaId == @agencijaId RETURN o";
-        Map<String, Object> bindVars = new HashMap<>();
-        bindVars.put("agencijaId", agencijaId);
-
+    public List<Predmet> sviPredmeti() {
+        String query = "FOR p IN predmeti " +
+                       "  LET v = DOCUMENT('vestine', p.vestinaId) " +
+                       "  LET nivoEnum = (p.nivo == 'MASTER' ? 'NAPREDNI' : (p.ects >= 8 ? 'SREDNJI' : 'POCETNI')) " +
+                       "  RETURN { " +
+                       "    id: p.id, " +
+                       "    nazivPredmeta: p.naziv, " +
+                       "    ects: p.ects, " +
+                       "    nivoKojiNudi: nivoEnum, " +
+                       "    vestina: v, " +
+                       "    predavacId: p.predavacId " +
+                       "  }";
         try {
-            ArangoCursor<Oglas> cursor = arangoDB.db(dbName).query(query, Oglas.class, bindVars, null);
+            // Koristimo ArangoCursor sa tvojom Predmet.class
+            com.arangodb.ArangoCursor<Predmet> cursor = arangoDB.db(dbName).query(query, Predmet.class, null, null);
+            List<Predmet> rezultati = cursor.asListRemaining();
+
+            System.out.println("Arango: Uspesno povuceno " + rezultati.size() + " predmeta sa mapiranim nivoima.");
+            return rezultati;
+
+        } catch (Exception e) {
+            System.err.println("Greška pri dohvatanju i mapiranju predmeta: " + e.getMessage());
+            // Štampamo stack trace da vidimo tačno gde Jackson puca ako dođe do greške
+            e.printStackTrace(); 
+            return java.util.Collections.emptyList();
+        }
+    }
+
+    public List<Predavac> sviPredavaci() {
+        String query = "FOR pr IN predavaci RETURN pr";
+        try {
+            ArangoCursor<Predavac> cursor = arangoDB.db(dbName).query(query, Predavac.class, null, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri preuzimanju oglasa agencije: " + e.getMessage());
+            System.err.println("Greška pri dohvatanju predavača: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
+    }
+    
+    // 1. Dohvatanje svih studenata
+    public List<Student> sviStudenti() {
+        String query = "FOR s IN studenti RETURN s";
+        try {
+            ArangoCursor<Student> cursor = arangoDB.db(dbName).query(query, Student.class, null, null);
+            return cursor.asListRemaining();
+        } catch (Exception e) {
+            System.err.println("Greška pri dohvatanju studenata: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
+    }
+
+    // 2. Dohvatanje svih agencija
+    public List<Agencija> sveAgencije() {
+        String query = "FOR a IN agencije RETURN a";
+        try {
+            ArangoCursor<Agencija> cursor = arangoDB.db(dbName).query(query, Agencija.class, null, null);
+            return cursor.asListRemaining();
+        } catch (Exception e) {
+            System.err.println("Greška pri dohvatanju agencija: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
+    }
+
+    // 3. Dohvatanje svih polaganja (ispita)
+    public List<Polaganje> svaPolaganja() {
+        String query = "FOR p IN polaganja RETURN p";
+        try {
+            ArangoCursor<Polaganje> cursor = arangoDB.db(dbName).query(query, Polaganje.class, null, null);
+            return cursor.asListRemaining();
+        } catch (Exception e) {
+            System.err.println("Greška pri dohvatanju polaganja: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
+    }
+
+    // 4. Dohvatanje svih oglasa
+    public List<Oglas> sviOglasi() {
+        String query = "FOR o IN oglasi RETURN MERGE(o, { id: o._key })";
+        try {
+            com.arangodb.ArangoCursor<Oglas> cursor = arangoDB.db(dbName).query(query, Oglas.class, null, null);
+            return cursor.asListRemaining();
+        } catch (Exception e) {
+            System.err.println("Greška pri dohvatanju oglasa: " + e.getMessage());
             return java.util.Collections.emptyList();
         }
     }

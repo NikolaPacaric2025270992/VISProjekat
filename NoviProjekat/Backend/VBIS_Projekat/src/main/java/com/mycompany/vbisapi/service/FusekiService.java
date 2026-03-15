@@ -197,4 +197,15 @@ public class FusekiService {
             System.err.println("Greska u Fuseki komunikaciji: " + e.getMessage());
         }
     }
+    
+    public void ocistiSve(){
+        try {
+            String obrisiUpit = "CLEAR ALL";
+            org.apache.jena.update.UpdateRequest request = org.apache.jena.update.UpdateFactory.create(obrisiUpit);
+            org.apache.jena.update.UpdateProcessor processor = org.apache.jena.update.UpdateExecutionFactory.createRemote(request, FUSEKI_UPDATE_URL);
+            processor.execute();
+        } catch (Exception e){
+            System.out.println("Greska pri ciscenju Fuseki baze: " + e.getMessage());
+        }
+    }
 }

@@ -18,7 +18,7 @@ public class VBIS_Projekat {
 
     public static void main(String[] args) {
         SpringApplication.run(VBIS_Projekat.class, args);
-        System.out.println("SERVER JE UPALJEN I ČEKA NA http://localhost:8080");
+        System.out.println("SERVER JE UPALJEN I CEKA NA http://localhost:8080");
         /*
         ArangoService arango = new ArangoService();
         FusekiService fuseki = new FusekiService();

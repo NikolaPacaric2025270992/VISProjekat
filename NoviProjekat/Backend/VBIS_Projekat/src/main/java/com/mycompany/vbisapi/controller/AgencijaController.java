@@ -7,10 +7,13 @@ package com.mycompany.vbisapi.controller;
 import com.mycompany.vbisapi.model.Agencija;
 import com.mycompany.vbisapi.model.LoginDTO;
 import com.mycompany.vbisapi.service.AgencijaService;
+import com.mycompany.vbisapi.service.FusekiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +32,9 @@ public class AgencijaController {
     @Autowired
     private AgencijaService agencijaService;
     
+    @Autowired
+    private FusekiService fusekiService;
+    
     @PostMapping("/login")
     public ResponseEntity<?> loginAgencija(@RequestBody LoginDTO loginPodaci) {
         Agencija a = agencijaService.login(loginPodaci.getEmail(), loginPodaci.getLozinka());
@@ -43,6 +49,8 @@ public class AgencijaController {
     public ResponseEntity<?> azurirajAgenciju(@RequestBody Agencija a) {
         try {
             agencijaService.azurirajAgenciju(a);
+            fusekiService.obrisiKorisnikaIzRDF(a.getId()); // Brišemo stari čvor
+            fusekiService.sacuvajAgencijuURDF(a);          // Upisujemo novi
             return ResponseEntity.ok(a); 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri ažuriranju.");
@@ -56,6 +64,18 @@ public class AgencijaController {
             return "Uspeh: Agencija " + a.getNazivAgencije() + " je registrovana!";
         }catch (Exception e){
             return "Greska pri registraciji agencije: " + e.getMessage();
+        }
+    }
+    
+    // 4. DELETE (Brisanje naloga)
+    @DeleteMapping("/obrisi/{id}")
+    public ResponseEntity<?> obrisiAgenciju(@PathVariable String id) {
+        try {
+            agencijaService.obrisiAgenciju(id); // Briše iz Aranga
+            fusekiService.obrisiKorisnikaIzRDF(id); // Briše iz Fusekija
+            return ResponseEntity.ok("Nalog agencije uspešno obrisan.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri brisanju.");
         }
     }
 }

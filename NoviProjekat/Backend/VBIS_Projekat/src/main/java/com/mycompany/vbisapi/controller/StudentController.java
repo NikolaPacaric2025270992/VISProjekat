@@ -74,6 +74,21 @@ public class StudentController {
         }
     }
     
+    @DeleteMapping("/obrisi/{id}")
+    public ResponseEntity<?> obrisiStudenta(@PathVariable String id) {
+        try {
+            // 1. Brišemo iz ArangoDB
+            studentService.obrisiStudenta(id); // Pretpostavljam da ćeš u StudentService pozvati arango.obrisiStudenta(id)
+            
+            // 2. Brišemo iz Fusekija
+            fusekiService.obrisiKorisnikaIzRDF(id);
+            
+            return ResponseEntity.ok("Nalog studenta je uspešno obrisan iz svih baza.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri brisanju: " + e.getMessage());
+        }
+    }
+    
     @PostMapping("/upload-polaganja")
     public ResponseEntity<?> uploadPolaganja(@RequestParam("fajl") MultipartFile fajl) {
         try {

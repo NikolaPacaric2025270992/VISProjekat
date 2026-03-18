@@ -36,4 +36,10 @@ public class AgencijaService {
         arango.azurirajAgenciju(a);
         fuseki.azurirajAgencijuURDF(a);
     }
+    
+    public void obrisiAgenciju(String id) {
+        arango.obrisiAgenciju(id);
+        fuseki.obrisiKorisnikaIzRDF(id);
+        System.out.println("AgencijaService: Agencija " + id + " je obrisana.");
+    }
 }

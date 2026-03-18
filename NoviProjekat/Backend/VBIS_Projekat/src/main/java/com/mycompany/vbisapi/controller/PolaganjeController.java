@@ -5,9 +5,13 @@
 package com.mycompany.vbisapi.controller;
 
 import com.mycompany.vbisapi.model.Polaganje;
+import com.mycompany.vbisapi.service.ArangoService;
 import com.mycompany.vbisapi.service.PolaganjeService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +29,9 @@ public class PolaganjeController {
     @Autowired
     private PolaganjeService polaganjeService;
     
+    @Autowired
+    private ArangoService arangoService;
+    
     @PostMapping("/dodaj")
     public String dodajPolaganje(@RequestBody Polaganje p){
         try {
@@ -35,4 +42,8 @@ public class PolaganjeController {
         }
     }
     
+    @GetMapping("/student/{studentId}")
+    public List<Polaganje> getPolaganjaStudenta(@PathVariable String studentId) {
+        return arangoService.nadjiPolaganjaStudenta(studentId);
+    }
 }

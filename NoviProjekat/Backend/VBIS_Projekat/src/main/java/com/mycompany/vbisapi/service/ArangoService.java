@@ -269,6 +269,25 @@ public class ArangoService {
         }
     }
     
+    // --- DELETE METODE (ArangoDB) ---
+    public void obrisiStudenta(String id) {
+        try {
+            arangoDB.db(dbName).collection("studenti").deleteDocument(id);
+            System.out.println("ArangoDB: Student " + id + " je obrisan.");
+        } catch (Exception e) {
+            System.err.println("Greška pri brisanju studenta iz Aranga: " + e.getMessage());
+        }
+    }
+
+    public void obrisiAgenciju(String id) {
+        try {
+            arangoDB.db(dbName).collection("agencije").deleteDocument(id);
+            System.out.println("ArangoDB: Agencija " + id + " je obrisana.");
+        } catch (Exception e) {
+            System.err.println("Greška pri brisanju agencije iz Aranga: " + e.getMessage());
+        }
+    }
+    
     public java.util.List<Oglas> nadjiOglasePoAgenciji(String agencijaId) {
         // MERGE automatski dodaje polje 'id' u JSON rezultat koristeći postojeći '_key'
         String query = "FOR o IN oglasi FILTER o.agencijaId == @agencijaId RETURN MERGE(o, { id: o._key })";
@@ -378,6 +397,20 @@ public class ArangoService {
             return cursor.asListRemaining();
         } catch (Exception e) {
             System.err.println("Greška pri dohvatanju oglasa: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
+    }
+    
+    public List<Polaganje> nadjiPolaganjaStudenta(String studentId) {
+        String query = "FOR p IN polaganja FILTER p.studentId == @studentId RETURN p";
+        Map<String, Object> bindVars = new HashMap<>();
+        bindVars.put("studentId", studentId);
+
+        try {
+            com.arangodb.ArangoCursor<Polaganje> cursor = arangoDB.db(dbName).query(query, Polaganje.class, bindVars, null);
+            return cursor.asListRemaining();
+        } catch (Exception e) {
+            System.err.println("Greška pri preuzimanju polaganja: " + e.getMessage());
             return java.util.Collections.emptyList();
         }
     }

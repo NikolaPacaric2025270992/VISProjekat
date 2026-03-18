@@ -37,4 +37,14 @@ public class StudentService {
         arangoService.azurirajStudenta(s);
         fusekiService.azurirajStudentaURDF(s);
     }
+    
+    public void obrisiStudenta(String id) {
+        // 1. Brišemo iz primarne baze (Arango)
+        arangoService.obrisiStudenta(id);
+        
+        // 2. Brišemo iz semantičke baze (Fuseki)
+        fusekiService.obrisiKorisnikaIzRDF(id);
+        
+        System.out.println("StudentService: Student " + id + " je potpuno uklonjen iz sistema.");
+    }
 }

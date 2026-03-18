@@ -198,6 +198,17 @@ public class FusekiService {
         }
     }
     
+    // --- DELETE METODE (Fuseki RDF) ---
+    public void obrisiKorisnikaIzRDF(String id) {
+        // Ovaj SPARQL upit briše sve triplete gde je dati ID subjekat
+        String deleteQuery = MY_PREFIX +
+                "DELETE { :" + id + " ?p ?o } " +
+                "WHERE { :" + id + " ?p ?o }";
+                
+        izvrsiUpdate(deleteQuery);
+        System.out.println("Fuseki: Svi podaci za entitet " + id + " su uklonjeni iz grafa.");
+    }
+    
     public void ocistiSve(){
         try {
             String obrisiUpit = "CLEAR ALL";

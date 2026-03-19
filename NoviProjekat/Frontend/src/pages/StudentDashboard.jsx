@@ -14,13 +14,19 @@ function StudentDashboard() {
     const [izabranPredmet, setIzabranPredmet] = useState(null); 
     const [ocena, setOcena] = useState(6);
     const [polaganja, setPolaganja] = useState([]);
+    
+    // NOVO: Dodato stanje za SVE oglase, pored preporučenih
     const [preporuceniOglasi, setPreporuceniOglasi] = useState([]);
+    const [sviOglasi, setSviOglasi] = useState([]); 
 
-    // NOVO: Stanja za Podešavanja profila
+    // Stanja za Podešavanja profila
     const [prikaziPodesavanja, setPrikaziPodesavanja] = useState(false);
     const [editIme, setEditIme] = useState('');
     const [editPrezime, setEditPrezime] = useState('');
     const [editTraziZaposlenje, setEditTraziZaposlenje] = useState(false);
+    const [trenutnaLozinka, setTrenutnaLozinka] = useState('');
+    const [novaLozinka, setNovaLozinka] = useState('');
+    const [potvrdaLozinke, setPotvrdaLozinke] = useState('');
 
     useEffect(() => {
         const ulogovanKorisnik = localStorage.getItem('user');
@@ -42,6 +48,11 @@ function StudentDashboard() {
             .then(res => setPreporuceniOglasi(res.data))
             .catch(err => console.error("Greška pri učitavanju preporuka:", err));
 
+        // NOVO: Dohvatanje apsolutno svih oglasa u bazi za tržište rada
+        axios.get('http://localhost:8080/api/oglasi/svi')
+            .then(res => setSviOglasi(res.data))
+            .catch(err => console.error("Greška pri učitavanju svih oglasa:", err));
+
     }, [navigate]);
 
     const handleOdjava = () => {
@@ -50,7 +61,6 @@ function StudentDashboard() {
         navigate('/prijava');
     };
 
-    // NOVO: Funkcija za otvaranje podešavanja i popunjavanje forme
     const otvoriPodesavanja = () => {
         setEditIme(student.ime);
         setEditPrezime(student.prezime);
@@ -58,37 +68,50 @@ function StudentDashboard() {
         setPrikaziPodesavanja(true);
     };
 
-    // NOVO: UPDATE Funkcija (Šalje PUT zahtev)
     const handleAzurirajProfil = async (e) => {
         e.preventDefault();
         const azuriranStudent = { ...student, ime: editIme, prezime: editPrezime, traziZaposlenje: editTraziZaposlenje };
         
+        if (trenutnaLozinka || novaLozinka || potvrdaLozinke) {
+            if (trenutnaLozinka !== student.lozinka) { alert("Trenutna lozinka nije tačna!"); return; }
+            if (novaLozinka !== potvrdaLozinke) { alert("Nove lozinke se ne poklapaju!"); return; }
+            if (novaLozinka.length < 5) { alert("Nova lozinka mora imati bar 5 karaktera."); return; }
+            azuriranStudent.lozinka = novaLozinka; 
+        }
+
         try {
             await axios.put('http://localhost:8080/api/studenti/update', azuriranStudent);
             setStudent(azuriranStudent);
-            localStorage.setItem('user', JSON.stringify(azuriranStudent)); // Čuvamo promenu i u browseru
+            localStorage.setItem('user', JSON.stringify(azuriranStudent)); 
             alert("Profil uspešno ažuriran!");
-            setPrikaziPodesavanja(false); // Vraćamo se na početni ekran
-        } catch (error) {
-            alert("Greška pri ažuriranju profila.");
-        }
+            setTrenutnaLozinka(''); setNovaLozinka(''); setPotvrdaLozinke('');
+            setPrikaziPodesavanja(false); 
+        } catch (error) { alert("Greška pri ažuriranju profila."); }
     };
 
-    // NOVO: DELETE Funkcija (Šalje DELETE zahtev)
     const handleObrisiNalog = async () => {
         const potvrda = window.confirm("Da li ste sigurni da želite trajno da obrišete nalog? Svi vaši podaci i položeni ispiti će biti obrisani.");
         if (potvrda) {
             try {
                 await axios.delete(`http://localhost:8080/api/studenti/obrisi/${student.id}`);
                 alert("Nalog je uspešno obrisan.");
-                handleOdjava(); // Odjavljujemo korisnika i prebacujemo ga na login ekran
-            } catch (error) {
-                alert("Greška pri brisanju naloga.");
-            }
+                handleOdjava(); 
+            } catch (error) { alert("Greška pri brisanju naloga."); }
         }
     };
 
-    // --- Funkcije za ispite ostaju iste ---
+    const handleObrisiPolaganje = async (id) => {
+        if (window.confirm("Da li ste sigurni da želite da obrišete ovaj ispit?")) {
+            try {
+                await axios.delete(`http://localhost:8080/api/polaganja/obrisi/${id}`);
+                setPolaganja(polaganja.filter(p => p.id !== id));
+                const resPreporuke = await axios.get(`http://localhost:8080/api/studenti/${student.email}/preporuke`);
+                setPreporuceniOglasi(resPreporuke.data);
+                alert("Ispit uspešno uklonjen.");
+            } catch (error) { alert("Greška pri brisanju ispita."); }
+        }
+    };
+
     const handleSearchChange = (e) => {
         const query = e.target.value;
         setSearchQuery(query);
@@ -113,9 +136,8 @@ function StudentDashboard() {
             await axios.post('http://localhost:8080/api/polaganja/dodaj', novoPolaganje);
             alert("Ispit uspešno evidentiran!");
             setPolaganja([...polaganja, { ...novoPolaganje, nazivPredmeta: izabranPredmet.nazivPredmeta }]);
-            setSearchQuery(''); setIzabranPredmet(null);
+            setSearchQuery(''); setIzabranPredmet(null); setOcena(6);
             
-            // Osvežavamo preporuke nakon unosa ispita
             const resPreporuke = await axios.get(`http://localhost:8080/api/studenti/${student.email}/preporuke`);
             setPreporuceniOglasi(resPreporuke.data);
         } catch (error) { alert("Greška pri čuvanju."); }
@@ -130,19 +152,15 @@ function StudentDashboard() {
                 <h2 className="text-success">Profil: {student.ime} {student.prezime}</h2>
                 <div>
                     <span className="me-3 fw-bold text-muted">Status: {student.traziZaposlenje ? 'Traži posao 🟢' : 'Nije aktivan 🔴'}</span>
-                    
-                    {/* NOVO: Dugmići za navigaciju u zaglavlju */}
                     {!prikaziPodesavanja ? (
                         <button onClick={otvoriPodesavanja} className="btn btn-outline-secondary btn-sm me-2">⚙️ Podešavanja</button>
                     ) : (
                         <button onClick={() => setPrikaziPodesavanja(false)} className="btn btn-outline-secondary btn-sm me-2">🔙 Nazad na Dashboard</button>
                     )}
-                    
                     <button onClick={handleOdjava} className="btn btn-outline-danger btn-sm">Odjavi se</button>
                 </div>
             </div>
             
-            {/* USLOVNO RENDEROVANJE: Podešavanja ILI Dashboard */}
             {prikaziPodesavanja ? (
                 /* PRIKAZ: PODEŠAVANJA PROFILA */
                 <div className="row justify-content-center animate__animated animate__fadeIn">
@@ -167,6 +185,19 @@ function StudentDashboard() {
                                             Aktivno tražim posao i želim preporuke poslodavaca
                                         </label>
                                     </div>
+
+                                    <hr className="my-4"/>
+                                    <h6 className="fw-bold mb-3">Promena lozinke (Opciono)</h6>
+                                    <div className="mb-2">
+                                        <input type="password" placeholder="Trenutna lozinka" className="form-control" value={trenutnaLozinka} onChange={(e) => setTrenutnaLozinka(e.target.value)} />
+                                    </div>
+                                    <div className="mb-2">
+                                        <input type="password" placeholder="Nova lozinka" className="form-control" value={novaLozinka} onChange={(e) => setNovaLozinka(e.target.value)} />
+                                    </div>
+                                    <div className="mb-4">
+                                        <input type="password" placeholder="Potvrdi novu lozinku" className="form-control" value={potvrdaLozinke} onChange={(e) => setPotvrdaLozinke(e.target.value)} />
+                                    </div>
+
                                     <button type="submit" className="btn btn-primary w-100 mb-3">Sačuvaj izmene</button>
                                 </form>
                                 <hr />
@@ -179,10 +210,10 @@ function StudentDashboard() {
                     </div>
                 </div>
             ) : (
-                /* PRIKAZ: STANDARDNI DASHBOARD (Ispiti i Preporuke) */
+                /* PRIKAZ: STANDARDNI DASHBOARD (Ispiti i Oglasi) */
                 <>
+                    {/* Gornji red: Unos ispita i Tabela */}
                     <div className="row animate__animated animate__fadeIn">
-                        {/* Leva kolona: Forma za ispite */}
                         <div className="col-md-5">
                             <div className="card shadow-sm border-0">
                                 <div className="card-header bg-success text-white py-3">
@@ -211,12 +242,11 @@ function StudentDashboard() {
                             </div>
                         </div>
 
-                        {/* Desna kolona: Tabela ispita */}
                         <div className="col-md-7">
                             <h4 className="mb-3 text-secondary">Moji položeni ispiti</h4>
-                            <div className="table-responsive shadow-sm">
-                                <table className="table table-hover bg-white border">
-                                    <thead className="table-success text-white">
+                            <div className="table-responsive shadow-sm" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                                <table className="table table-hover bg-white border mb-0">
+                                    <thead className="table-success text-white position-sticky top-0" style={{ zIndex: 1 }}>
                                         <tr>
                                             <th>Predmet</th>
                                             <th className="text-center">Ocena</th>
@@ -224,12 +254,20 @@ function StudentDashboard() {
                                     </thead>
                                     <tbody>
                                         {polaganja.length === 0 ? (
-                                            <tr><td colSpan="2" className="text-center text-muted">Nema evidentiranih ispita.</td></tr>
+                                            <tr><td colSpan="2" className="text-center text-muted py-4">Nema evidentiranih ispita.</td></tr>
                                         ) : (
                                             polaganja.map((p, index) => (
                                                 <tr key={p.id || index}>
-                                                    <td>{p.nazivPredmeta || p.predmetId}</td>
-                                                    <td className="text-center"><span className="badge bg-success rounded-pill">{p.ocena}</span></td>
+                                                    <td className="align-middle">{p.nazivPredmeta || p.predmetId}</td>
+                                                    <td className="text-center align-middle">
+                                                        <span className="badge bg-success rounded-pill me-2">{p.ocena}</span>
+                                                        <button 
+                                                            onClick={() => handleObrisiPolaganje(p.id)} 
+                                                            className="btn btn-sm btn-danger py-0 px-2 fw-bold" 
+                                                            title="Ukloni polaganje">
+                                                            X
+                                                        </button>
+                                                    </td>
                                                 </tr>
                                             ))
                                         )}
@@ -239,38 +277,75 @@ function StudentDashboard() {
                         </div>
                     </div>
 
-                    {/* Donji red: Preporučeni poslovi */}
-                    <div className="row mt-5 animate__animated animate__fadeInUp">
-                        <div className="col-12">
-                            <h4 className="mb-3 text-primary border-bottom pb-2">Preporučeni poslovi za tebe</h4>
-                            {preporuceniOglasi.length === 0 ? (
-                                <div className="alert alert-light text-center border shadow-sm text-muted py-4">
-                                    Trenutno nemamo poslova koji odgovaraju tvom profilu. 
-                                    <br/>Položi još neki ispit kako bi otključao nove veštine!
-                                </div>
-                            ) : (
-                                <div className="row">
-                                    {preporuceniOglasi.map((oglas, idx) => (
-                                        <div key={oglas.id || idx} className="col-md-6 col-lg-4 mb-4">
-                                            <div className="card h-100 shadow-sm border-start border-primary border-4">
-                                                <div className="card-body">
-                                                    <div className="d-flex justify-content-between align-items-start mb-2">
-                                                        <h5 className="card-title text-primary mb-0">{oglas.naslov}</h5>
-                                                        <span className="badge bg-warning text-dark fs-6" title="Tvoj skor za ovaj oglas">
-                                                            Bodovi: {oglas.bodovi || oglas.ukupniBodovi || 'N/A'}
+                    {/* Dve kolone za Oglase (NOVO: Svi Oglasi vs Preporučeni Oglasi) */}
+                    <div className="row mt-5 pt-3 border-top animate__animated animate__fadeInUp">
+                        
+                        {/* Leva Kolona: Svi Oglasi sa tržišta */}
+                        <div className="col-lg-6 mb-4">
+                            <h4 className="mb-3 text-secondary d-flex justify-content-between align-items-center pb-2 border-bottom">
+                                <span>Tržište rada (Svi oglasi)</span>
+                                <span className="badge bg-secondary rounded-pill">{sviOglasi.length}</span>
+                            </h4>
+                            
+                            <div className="pe-2" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                                {sviOglasi.length === 0 ? (
+                                    <div className="alert alert-light text-center border text-muted">Trenutno nema otvorenih pozicija.</div>
+                                ) : (
+                                    sviOglasi.map((oglas, idx) => (
+                                        <div key={oglas.id || idx} className="card shadow-sm mb-3 border-start border-secondary border-4">
+                                            <div className="card-body">
+                                                <h6 className="card-title text-dark fw-bold mb-1">{oglas.naslov}</h6>
+                                                <p className="text-muted small mb-3">ID Oglasa: {oglas.oglasID || oglas.id}</p>
+                                                
+                                                {/* Prikaz traženih veština za oglas (ukoliko postoje) */}
+                                                <div className="mb-3">
+                                                    {oglas.zahtevaneVestine && oglas.zahtevaneVestine.map((zv, zIdx) => (
+                                                        <span key={zIdx} className="badge bg-light text-secondary border me-1 mb-1" style={{ fontSize: '0.75rem' }}>
+                                                            {zv.vestina?.id || zv.vestinaId}
                                                         </span>
-                                                    </div>
-                                                    <p className="text-muted small mb-4">ID Oglasa: {oglas.oglasID || oglas.id}</p>
-                                                    <button className="btn btn-outline-primary w-100 fw-bold mt-auto">
-                                                        Prijavi se na oglas
-                                                    </button>
+                                                    ))}
                                                 </div>
+
+                                                <button className="btn btn-sm btn-outline-secondary w-100">Vidi detalje</button>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                    ))
+                                )}
+                            </div>
                         </div>
+
+                        {/* Desna Kolona: Preporučeni poslovi */}
+                        <div className="col-lg-6 mb-4">
+                            <h4 className="mb-3 text-success d-flex justify-content-between align-items-center pb-2 border-bottom">
+                                <span>Preporučeni za tebe 🌟</span>
+                                <span className="badge bg-success rounded-pill">{preporuceniOglasi.length}</span>
+                            </h4>
+                            
+                            <div className="pe-2" style={{ maxHeight: '600px', overflowY: 'auto' }}>
+                                {preporuceniOglasi.length === 0 ? (
+                                    <div className="alert alert-success bg-opacity-10 text-center border shadow-sm text-success py-4">
+                                        Trenutno nemamo poslova koji se poklapaju sa tvojim veštinama. <br/>
+                                        <strong>Položi još neki ispit da otključaš preporuke!</strong>
+                                    </div>
+                                ) : (
+                                    preporuceniOglasi.map((oglas, idx) => (
+                                        <div key={oglas.id || idx} className="card shadow-sm mb-3 border-start border-primary border-4 bg-light">
+                                            <div className="card-body">
+                                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 className="card-title text-success fw-bold mb-0">{oglas.naslov}</h6>
+                                                    <span className="badge bg-warning text-dark" title="Tvoj skor za ovaj oglas">
+                                                        Bodovi: {oglas.bodovi || oglas.ukupniBodovi || 'N/A'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-muted small mb-3">Savršeno se uklapa u tvoj profil!</p>
+                                                <button className="btn btn-sm btn-success w-100 fw-bold">Prijavi se odmah</button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+
                     </div>
                 </>
             )}

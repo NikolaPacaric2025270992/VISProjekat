@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,6 +54,17 @@ public class OglasController {
         }
     }
     
+    @DeleteMapping("/obrisi/{id}")
+    public ResponseEntity<?> obrisiOglas(@PathVariable String id) {
+        try {
+            // Kontroler samo delegira posao Servisu!
+            oglasService.obrisiOglas(id); 
+            return ResponseEntity.ok("Oglas uspešno obrisan.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Greška pri brisanju: " + e.getMessage());
+        }
+    }
+    
     @PostMapping("/upload")
     public ResponseEntity<?> uploadOglasa(@RequestParam("fajl") MultipartFile fajl) {
         try {
@@ -85,6 +97,18 @@ public class OglasController {
     @GetMapping("/agencija/{agencijaId}")
     public List<Oglas> dobijOglaseAgencije(@PathVariable String agencijaId) {
         return oglasService.nadjiOglaseAgencije(agencijaId);
+    }
+    
+    // NOVO: Ruta za dohvatanje apsolutno svih oglasa (za tržište rada kod Studenta)
+    @GetMapping("/svi")
+    public ResponseEntity<List<Oglas>> getSviOglasi() {
+        try {
+            List<Oglas> sviOglasi = oglasService.dobijSveOglase();
+            return ResponseEntity.ok(sviOglasi);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @GetMapping("/provera")

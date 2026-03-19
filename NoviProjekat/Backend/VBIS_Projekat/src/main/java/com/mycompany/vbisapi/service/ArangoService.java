@@ -148,6 +148,7 @@ public class ArangoService {
             BaseDocument doc = new BaseDocument();
         
             doc.setKey(pol.getId());
+            doc.addAttribute("id", pol.getId());
             doc.addAttribute("studentId", pol.getStudentId());
             doc.addAttribute("predmetId", pol.getPredmetId());
             doc.addAttribute("ocena", pol.getOcena());
@@ -288,6 +289,18 @@ public class ArangoService {
         }
     }
     
+    public void obrisiPolaganje(String id) {
+        try {
+            arangoDB.db(dbName).collection("polaganja").deleteDocument(id);
+        } catch (Exception e) { System.err.println("Arango greška: " + e.getMessage()); }
+    }
+
+    public void obrisiOglas(String id) {
+        try {
+            arangoDB.db(dbName).collection("oglasi").deleteDocument(id);
+        } catch (Exception e) { System.err.println("Arango greška: " + e.getMessage()); }
+    }
+    
     public java.util.List<Oglas> nadjiOglasePoAgenciji(String agencijaId) {
         // MERGE automatski dodaje polje 'id' u JSON rezultat koristeći postojeći '_key'
         String query = "FOR o IN oglasi FILTER o.agencijaId == @agencijaId RETURN MERGE(o, { id: o._key })";
@@ -361,6 +374,18 @@ public class ArangoService {
             return cursor.asListRemaining();
         } catch (Exception e) {
             System.err.println("Greška pri dohvatanju studenata: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
+    }
+    
+    // NOVO: Dohvatanje samo onih studenata koji traže zaposlenje (za AgencijaDashboard)
+    public List<Student> nadjiAktivneStudente() {
+        String query = "FOR s IN studenti FILTER s.traziZaposlenje == true RETURN MERGE(s, { id: s._key })";
+        try {
+            com.arangodb.ArangoCursor<Student> cursor = arangoDB.db(dbName).query(query, Student.class, null, null);
+            return cursor.asListRemaining();
+        } catch (Exception e) {
+            System.err.println("Greška pri dohvatanju aktivnih studenata: " + e.getMessage());
             return java.util.Collections.emptyList();
         }
     }

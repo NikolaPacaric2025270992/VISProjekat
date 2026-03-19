@@ -30,7 +30,6 @@ public class FusekiService {
         System.out.println("Student " + s.getIme() + " (Traži posao: " + s.isTraziZaposlenje() + ") poslat u Fuseki!");
     }
 
-    // --- Istu stvar radimo za rang listu agencije ---
     public List<RangiraniStudent> getRangListaStudenata(String oglasId, int stranica, int poStranici) {
         List<RangiraniStudent> lista = new ArrayList<>();
         int offset = (stranica - 1) * poStranici;
@@ -42,11 +41,15 @@ public class FusekiService {
             "  ?polaganje :imaStudenta ?studentID ; :imaPredmet ?predmet ; :imaOcenu ?ocena . " +
             "  ?predmet :prenosiVestinu ?vestina ; :nudiNivo ?nivoStudenta . " +
             "  ?studentID :imaIme ?ime ; :imaPrezime ?prezime ; :traziZaposlenje true . " +
-            "  BIND((?ocena * 2) AS ?ocenaBodovi) " +
-            "  BIND(IF(?prioritet = :Visok, 50, IF(?prioritet = :Srednji, 20, 5)) AS ?prioritetBodovi) " +
-            "  BIND(?ocenaBodovi + ?prioritetBodovi AS ?score) " +
+            
+            // 1. Pretvaramo Nivo studenta u bodove (40, 60, 80)
+            "  BIND(IF(?nivoStudenta = :Napredni, 80, IF(?nivoStudenta = :Srednji, 60, 40)) AS ?nivoBodovi) " +
+            
+            // 2. Bodovi su ISKLJUČIVO (Ocena * 2) + Nivo studenta
+            "  BIND((?ocena * 2) + ?nivoBodovi AS ?score) " +
+            
             "} GROUP BY ?studentID ?ime ?prezime ORDER BY DESC(?ukupniBodovi) " +
-            "LIMIT " + poStranici + " OFFSET " + offset; // <--- PAGINACIJA
+            "LIMIT " + poStranici + " OFFSET " + offset;
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(FUSEKI_QUERY_URL, sparqlQuery)) {
             ResultSet results = qexec.execSelect();
@@ -63,23 +66,31 @@ public class FusekiService {
         return lista;
     }
 
-    // --- DODATO: stranica i poStranici ---
     public List<PreporuceniOglas> getPreporukeZaStudenta(String studentEmail, int stranica, int poStranici) {
         String studentID = studentEmail.replace("@", "_").replace(".", "_");
         List<PreporuceniOglas> preporuke = new ArrayList<>();
 
-        // Računanje OFFSET-a
         int offset = (stranica - 1) * poStranici;
 
         String sparqlQuery = MY_PREFIX + RDF_PREFIX +
-            "SELECT ?oglasID ?naslov (SUM(?score) AS ?ukupniBodovi) WHERE { " +
+            "SELECT ?oglasID ?naslov (SUM(?score) AS ?ukupniBodovi) (MAX(?priNum) AS ?maxPrioritet) WHERE { " +
             "  ?oglasID rdf:type :Oglas ; :imaNaziv ?naslov ; :imaZahtev ?zahtev . " +
             "  ?zahtev :odnosiSeNaVestinu ?vestina ; :zahtevaNivo ?nivoOglasa ; :imaPrioritet ?prioritet . " +
             "  ?polaganje :imaStudenta :" + studentID + " ; :imaPredmet ?predmet ; :imaOcenu ?ocena . " +
             "  ?predmet :prenosiVestinu ?vestina ; :nudiNivo ?nivoStudenta . " +
-            "  BIND((?ocena * 2) + IF(?prioritet = :Visok, 50, IF(?prioritet = :Srednji, 20, 5)) AS ?score) " +
-            "} GROUP BY ?oglasID ?naslov ORDER BY DESC(?ukupniBodovi) " +
-            "LIMIT " + poStranici + " OFFSET " + offset; // <--- PAGINACIJA DODATA OVDE
+            
+            // 1. Pretvaramo Nivo studenta u bodove (40, 60, 80)
+            "  BIND(IF(?nivoStudenta = :Napredni, 80, IF(?nivoStudenta = :Srednji, 60, 40)) AS ?nivoBodovi) " +
+            
+            // 2. Bodovi su ISKLJUČIVO (Ocena * 2) + Nivo studenta
+            "  BIND((?ocena * 2) + ?nivoBodovi AS ?score) " +
+            
+            // 3. Pretvaramo Prioritet oglasa u broj isključivo radi sortiranja (Visok=2, Srednji=1, Nizak=0)
+            "  BIND(IF(?prioritet = :Visok, 2, IF(?prioritet = :Srednji, 1, 0)) AS ?priNum) " +
+            
+            // Grupišemo i sortiramo: PRVO po prioritetu, ONDA po bodovima
+            "} GROUP BY ?oglasID ?naslov ORDER BY DESC(?maxPrioritet) DESC(?ukupniBodovi) " +
+            "LIMIT " + poStranici + " OFFSET " + offset;
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(FUSEKI_QUERY_URL, sparqlQuery)) {
             ResultSet results = qexec.execSelect();
@@ -207,6 +218,35 @@ public class FusekiService {
                 
         izvrsiUpdate(deleteQuery);
         System.out.println("Fuseki: Svi podaci za entitet " + id + " su uklonjeni iz grafa.");
+    }
+    
+    // --- BRISANJE SPECIFIČNIH ENTITETA ---
+    
+    public void obrisiPolaganjeIzRDF(String id) {
+        // Briše polaganje i sve eventualne veze koje pokazuju na njega
+        String query = MY_PREFIX +
+            "DELETE { :" + id + " ?p ?o . ?s ?p2 :" + id + " } " +
+            "WHERE { " +
+            "  { :" + id + " ?p ?o } UNION { ?s ?p2 :" + id + " } " +
+            "}";
+        izvrsiUpdate(query);
+        System.out.println("Fuseki: Obrisano polaganje " + id);
+    }
+
+    public void obrisiOglasIzRDF(String id) {
+        // KASKADNO BRISANJE: Briše Oglas, briše vezu sa Agencijom i briše sve njegove Zahteve!
+        String query = MY_PREFIX +
+            "DELETE { " +
+            "  :" + id + " ?p ?o . " +
+            "  ?s ?p2 :" + id + " . " +
+            "  ?zahtev ?zp ?zo . " +
+            "} WHERE { " +
+            "  { :" + id + " ?p ?o } " +
+            "  UNION { ?s ?p2 :" + id + " } " +
+            "  UNION { :" + id + " :imaZahtev ?zahtev . ?zahtev ?zp ?zo } " +
+            "}";
+        izvrsiUpdate(query);
+        System.out.println("Fuseki: Obrisan oglas " + id + " i svi njegovi zahtevi.");
     }
     
     public void ocistiSve(){

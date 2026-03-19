@@ -26,4 +26,10 @@ public class PolaganjeService {
         fuseki.sacuvajPolaganjeURDF(p);
         System.out.println("PolaganjeService: Polaganje uspesno evidentirano u oba sistema.");
     }
+    
+    public void obrisiPolaganje(String id) {
+        arango.obrisiPolaganje(id);
+        fuseki.obrisiPolaganjeIzRDF(id);
+        System.out.println("PolaganjeService: Polaganje " + id + " uspesno uklonjeno iz obe baze.");
+    }
 }

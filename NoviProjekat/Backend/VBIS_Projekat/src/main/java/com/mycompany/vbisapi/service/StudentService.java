@@ -5,6 +5,7 @@
 package com.mycompany.vbisapi.service;
 
 import com.mycompany.vbisapi.model.Student;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,11 @@ public class StudentService {
     public void azurirajStudenta(Student s){
         arangoService.azurirajStudenta(s);
         fusekiService.azurirajStudentaURDF(s);
+    }
+    
+    // NOVO: Prosleđivanje zahteva za aktivnim studentima ka kontroleru
+    public List<Student> nadjiAktivneStudente() {
+        return arangoService.nadjiAktivneStudente();
     }
     
     public void obrisiStudenta(String id) {

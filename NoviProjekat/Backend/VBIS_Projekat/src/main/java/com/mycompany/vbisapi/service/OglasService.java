@@ -23,18 +23,26 @@ public class OglasService {
     private FusekiService fuseki;
     
     public void postaviOglas(Oglas o){
-        
-        // Čuvamo oglas u ArangoDB (sa ugnježdenim zahtevima)
         arango.sacuvajOglas(o);
-        
-        // Čuvamo oglas u Fuseki (sa N-ary relacijama)
         fuseki.sacuvajOglasURDF(o);
         
         System.out.println("OglasService: Oglas '" + 
                             o.getNaslov() + "' je potpuno sinhronizovan.");
     }
     
+    public void obrisiOglas(String id) {
+        arango.obrisiOglas(id);
+        fuseki.obrisiOglasIzRDF(id);
+        
+        System.out.println("OglasService: Oglas " + id + " uspesno uklonjen iz obe baze.");
+    }
+    
     public List<Oglas> nadjiOglaseAgencije(String agencijaId) {
         return arango.nadjiOglasePoAgenciji(agencijaId);
+    }
+    
+    // NOVO: Preuzimanje svih oglasa iz baze
+    public List<Oglas> dobijSveOglase() {
+        return arango.sviOglasi(); 
     }
 }

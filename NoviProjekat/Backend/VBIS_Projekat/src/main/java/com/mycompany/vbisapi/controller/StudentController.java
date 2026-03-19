@@ -118,6 +118,18 @@ public class StudentController {
         return fusekiService.getPreporukeZaStudenta(email, stranica, poStranici);
     }
     
+    // NOVO: Ruta za dohvatanje baze talenata (svih studenata koji traže posao)
+    @GetMapping("/aktivni")
+    public ResponseEntity<List<Student>> getAktivniStudenti() {
+        try {
+            List<Student> aktivniStudenti = studentService.nadjiAktivneStudente();
+            return ResponseEntity.ok(aktivniStudenti);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     @GetMapping("/provera")
     public String provera(){
         return "StudentController je aktivan i spreman!";

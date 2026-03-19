@@ -8,18 +8,24 @@ function AgencijaDashboard() {
     const [agencija, setAgencija] = useState(null);
     const [vestine, setVestine] = useState([]);
     const [oglasi, setOglasi] = useState([]); 
-    const [rangLista, setRangLista] = useState({}); 
     
+    // NOVO: Stanje za prikaz preporuka u donjem panelu (umesto starog rangLista)
+    const [prikazanePreporuke, setPrikazanePreporuke] = useState(null); 
+    // NOVO: Stanje za sve studente koji aktivno traže posao
+    const [aktivniStudenti, setAktivniStudenti] = useState([]);
+
     const [naslovOglasa, setNaslovOglasa] = useState('');
     const [zahtevi, setZahtevi] = useState([
         { vestinaId: '', nivo: 'POCETNI', prioritet: 'NIZAK' }
     ]);
 
-    // NOVO: Stanja za Podešavanja profila agencije
     const [prikaziPodesavanja, setPrikaziPodesavanja] = useState(false);
     const [editNazivAgencije, setEditNazivAgencije] = useState('');
     const [editLokacija, setEditLokacija] = useState('');
     const [editPib, setEditPib] = useState('');
+    const [trenutnaLozinka, setTrenutnaLozinka] = useState('');
+    const [novaLozinka, setNovaLozinka] = useState('');
+    const [potvrdaLozinke, setPotvrdaLozinke] = useState('');
 
     useEffect(() => {
         const ulogovanKorisnik = localStorage.getItem('user');
@@ -42,10 +48,14 @@ function AgencijaDashboard() {
             })
             .catch(err => console.error("Greška pri učitavanju veština:", err));
 
-        // Obrati pažnju: putanja se gađa preko ID-a agencije (zbog AQL-a)
         axios.get(`http://localhost:8080/api/oglasi/agencija/${podaciAgencije.id}`)
             .then(res => setOglasi(res.data))
             .catch(err => console.error("Greška pri učitavanju oglasa:", err));
+
+        // NOVO: Dohvatanje svih aktivnih studenata sa tržišta
+        axios.get('http://localhost:8080/api/studenti/aktivni')
+            .then(res => setAktivniStudenti(res.data))
+            .catch(err => console.error("Greška pri učitavanju aktivnih studenata:", err));
 
     }, [navigate]);
 
@@ -55,7 +65,6 @@ function AgencijaDashboard() {
         navigate('/prijava');
     };
 
-    // --- NOVO: Funkcije za CRUD nad profilom Agencije ---
     const otvoriPodesavanja = () => {
         setEditNazivAgencije(agencija.nazivAgencije);
         setEditLokacija(agencija.lokacija || '');
@@ -71,17 +80,23 @@ function AgencijaDashboard() {
             lokacija: editLokacija, 
             pib: editPib 
         };
+
+        if (trenutnaLozinka || novaLozinka || potvrdaLozinke) {
+            if (trenutnaLozinka !== agencija.lozinka) { alert("Trenutna lozinka nije tačna!"); return; }
+            if (novaLozinka !== potvrdaLozinke) { alert("Nove lozinke se ne poklapaju!"); return; }
+            if (novaLozinka.length < 5) { alert("Nova lozinka mora imati bar 5 karaktera."); return; }
+            azuriranaAgencija.lozinka = novaLozinka;
+        }
         
         try {
-            // Prema tvom kontroleru, putanja je /api/agencija/update
             await axios.put('http://localhost:8080/api/agencija/update', azuriranaAgencija);
             setAgencija(azuriranaAgencija);
             localStorage.setItem('user', JSON.stringify(azuriranaAgencija));
             alert("Podaci agencije su uspešno ažurirani!");
+            setTrenutnaLozinka(''); setNovaLozinka(''); setPotvrdaLozinke('');
             setPrikaziPodesavanja(false);
         } catch (error) {
             alert("Greška pri ažuriranju agencije.");
-            console.error(error);
         }
     };
 
@@ -89,18 +104,29 @@ function AgencijaDashboard() {
         const potvrda = window.confirm("Da li ste sigurni da želite trajno da obrišete agenciju? Oglasi agencije će takođe biti nedostupni.");
         if (potvrda) {
             try {
-                // Prema tvom kontroleru, putanja je /api/agencija/obrisi/{id}
                 await axios.delete(`http://localhost:8080/api/agencija/obrisi/${agencija.id}`);
                 alert("Nalog agencije je uspešno obrisan iz sistema.");
                 handleOdjava();
             } catch (error) {
                 alert("Greška pri brisanju naloga agencije.");
-                console.error(error);
             }
         }
     };
 
-    // --- Postojeće funkcije za Oglase ---
+    const handleObrisiOglas = async (id) => {
+        if (window.confirm("Trajno obrisati ovaj oglas? Sve preporuke će biti izgubljene.")) {
+            try {
+                await axios.delete(`http://localhost:8080/api/oglasi/obrisi/${id}`);
+                setOglasi(oglasi.filter(o => o.id !== id));
+                // Ako brišemo oglas koji je trenutno otvoren u donjem panelu, zatvori taj panel
+                if (prikazanePreporuke && prikazanePreporuke.oglas.id === id) {
+                    setPrikazanePreporuke(null);
+                }
+                alert("Oglas uspešno obrisan.");
+            } catch (error) { alert("Greška pri brisanju oglasa."); }
+        }
+    };
+
     const handleZahtevChange = (index, polje, vrednost) => {
         const noviZahtevi = [...zahtevi];
         noviZahtevi[index][polje] = vrednost;
@@ -135,15 +161,21 @@ function AgencijaDashboard() {
             setNaslovOglasa('');
             setZahtevi([{ vestinaId: vestine[0]?.id || '', nivo: 'POCETNI', prioritet: 'NIZAK' }]); 
         } catch (error) {
-            console.error(error);
             alert("Greška pri dodavanju oglasa.");
         }
     };
 
-    const handleVidiPreporuke = async (oglasId) => {
+    // IZMENJENO: Čuva oglas i kandidate u stanje, a zatim pravi lagani animirani "scroll" do panela
+    const handleVidiPreporuke = async (oglas) => {
         try {
-            const res = await axios.get(`http://localhost:8080/api/oglasi/${oglasId}/rang-lista`);
-            setRangLista(prev => ({ ...prev, [oglasId]: res.data }));
+            const res = await axios.get(`http://localhost:8080/api/oglasi/${oglas.id}/rang-lista`);
+            setPrikazanePreporuke({ oglas: oglas, kandidati: res.data });
+            
+            // Glatki prelaz (skrol) prema dnu ekrana
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 100);
+            
         } catch (error) {
             console.error("Greška:", error);
         }
@@ -152,25 +184,21 @@ function AgencijaDashboard() {
     if (!agencija) return <div className="text-center mt-5">Učitavanje...</div>;
 
     return (
-        <div className="container mt-4">
+        <div className="container mt-4 mb-5">
             {/* ZAGLAVLJE */}
             <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                 <h2 className="text-primary">Panel: {agencija.nazivAgencije}</h2>
                 <div>
                     <span className="me-3 fw-bold text-muted">PIB: {agencija.pib} | {agencija.lokacija}</span>
-                    
-                    {/* NOVO: Navigacija kroz Settings */}
                     {!prikaziPodesavanja ? (
                         <button onClick={otvoriPodesavanja} className="btn btn-outline-secondary btn-sm me-2">⚙️ Podešavanja</button>
                     ) : (
                         <button onClick={() => setPrikaziPodesavanja(false)} className="btn btn-outline-secondary btn-sm me-2">🔙 Nazad na Dashboard</button>
                     )}
-
                     <button onClick={handleOdjava} className="btn btn-outline-danger btn-sm">Odjavi se</button>
                 </div>
             </div>
 
-            {/* USLOVNO RENDEROVANJE */}
             {prikaziPodesavanja ? (
                 /* PRIKAZ: PODEŠAVANJA AGENCIJE */
                 <div className="row justify-content-center animate__animated animate__fadeIn">
@@ -193,6 +221,17 @@ function AgencijaDashboard() {
                                         <label className="form-label fw-bold">Lokacija (Sedište):</label>
                                         <input type="text" className="form-control" value={editLokacija} onChange={(e) => setEditLokacija(e.target.value)} required />
                                     </div>
+                                    <hr className="my-4"/>
+                                    <h6 className="fw-bold mb-3 text-secondary">Promena lozinke (Opciono)</h6>
+                                    <div className="mb-2">
+                                        <input type="password" placeholder="Trenutna lozinka" className="form-control" value={trenutnaLozinka} onChange={(e) => setTrenutnaLozinka(e.target.value)} />
+                                    </div>
+                                    <div className="mb-2">
+                                        <input type="password" placeholder="Nova lozinka" className="form-control" value={novaLozinka} onChange={(e) => setNovaLozinka(e.target.value)} />
+                                    </div>
+                                    <div className="mb-4">
+                                        <input type="password" placeholder="Potvrdi novu lozinku" className="form-control" value={potvrdaLozinke} onChange={(e) => setPotvrdaLozinke(e.target.value)} />
+                                    </div>
                                     <button type="submit" className="btn btn-primary w-100 mb-3">Sačuvaj izmene</button>
                                 </form>
                                 <hr />
@@ -206,129 +245,218 @@ function AgencijaDashboard() {
                 </div>
             ) : (
                 /* PRIKAZ: STANDARDNI DASHBOARD (Oglasi) */
-                <div className="row animate__animated animate__fadeIn">
-                    {/* Leva kolona: Forma sa dinamičkim veštinama */}
-                    <div className="col-md-5">
-                        <div className="card shadow-sm border-0">
-                            <div className="card-header bg-primary text-white py-3">
-                                <h5 className="mb-0">Kreiraj novi oglas</h5>
-                            </div>
-                            <div className="card-body">
-                                <form onSubmit={handleDodajOglas}>
-                                    <div className="mb-4">
-                                        <label className="form-label fw-bold">Naslov pozicije:</label>
-                                        <input type="text" className="form-control" value={naslovOglasa} onChange={(e) => setNaslovOglasa(e.target.value)} required placeholder="npr. Full Stack Developer" />
-                                    </div>
+                <>
+                    <div className="row animate__animated animate__fadeIn">
+                        {/* Leva kolona: Forma sa dinamičkim veštinama */}
+                        <div className="col-md-5">
+                            <div className="card shadow-sm border-0">
+                                <div className="card-header bg-primary text-white py-3">
+                                    <h5 className="mb-0">Kreiraj novi oglas</h5>
+                                </div>
+                                <div className="card-body">
+                                    <form onSubmit={handleDodajOglas}>
+                                        <div className="mb-4">
+                                            <label className="form-label fw-bold">Naslov pozicije:</label>
+                                            <input type="text" className="form-control" value={naslovOglasa} onChange={(e) => setNaslovOglasa(e.target.value)} required placeholder="npr. Full Stack Developer" />
+                                        </div>
 
-                                    <div className="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
-                                        <h6 className="mb-0 fw-bold text-secondary">Potrebne veštine</h6>
-                                        <button type="button" onClick={dodajNoviZahtev} className="btn btn-sm btn-outline-primary">+ Dodaj veštinu</button>
-                                    </div>
-                                    
-                                    {zahtevi.map((zahtev, index) => (
-                                        <div key={index} className="p-3 mb-3 bg-light border rounded position-relative">
-                                            {zahtevi.length > 1 && (
-                                                <button type="button" onClick={() => ukloniZahtev(index)} className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1">X</button>
-                                            )}
-                                            
-                                            <div className="mb-2">
-                                                <label className="form-label small fw-bold">Veština:</label>
-                                                <select className="form-select form-select-sm" value={zahtev.vestinaId} onChange={(e) => handleZahtevChange(index, 'vestinaId', e.target.value)}>
-                                                    <option value="" disabled>Izaberite veštinu...</option>
-                                                    {vestine.map(v => (
-                                                        <option key={v.id} value={v.id}>{v.naziv}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-
-                                            <div className="row g-2">
-                                                <div className="col">
-                                                    <label className="form-label small fw-bold">Traženi nivo:</label>
-                                                    <select className="form-select form-select-sm" value={zahtev.nivo} onChange={(e) => handleZahtevChange(index, 'nivo', e.target.value)}>
-                                                        <option value="POCETNI">Početni</option>
-                                                        <option value="SREDNJI">Srednji</option>
-                                                        <option value="NAPREDNI">Napredni</option>
+                                        <div className="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                                            <h6 className="mb-0 fw-bold text-secondary">Potrebne veštine</h6>
+                                            <button type="button" onClick={dodajNoviZahtev} className="btn btn-sm btn-outline-primary">+ Dodaj veštinu</button>
+                                        </div>
+                                        
+                                        {zahtevi.map((zahtev, index) => (
+                                            <div key={index} className="p-3 mb-3 bg-light border rounded position-relative">
+                                                {zahtevi.length > 1 && (
+                                                    <button type="button" onClick={() => ukloniZahtev(index)} className="btn btn-sm btn-danger position-absolute top-0 end-0 m-1">X</button>
+                                                )}
+                                                
+                                                <div className="mb-2">
+                                                    <label className="form-label small fw-bold">Veština:</label>
+                                                    <select className="form-select form-select-sm" value={zahtev.vestinaId} onChange={(e) => handleZahtevChange(index, 'vestinaId', e.target.value)}>
+                                                        <option value="" disabled>Izaberite veštinu...</option>
+                                                        {vestine.map(v => (
+                                                            <option key={v.id} value={v.id}>{v.naziv}</option>
+                                                        ))}
                                                     </select>
                                                 </div>
-                                                <div className="col">
-                                                    <label className="form-label small fw-bold">Prioritet:</label>
-                                                    <select className="form-select form-select-sm" value={zahtev.prioritet} onChange={(e) => handleZahtevChange(index, 'prioritet', e.target.value)}>
-                                                        <option value="NIZAK">Nizak</option>
-                                                        <option value="VISOK">Visok</option>
-                                                    </select>
+
+                                                <div className="row g-2">
+                                                    <div className="col">
+                                                        <label className="form-label small fw-bold">Traženi nivo:</label>
+                                                        <select className="form-select form-select-sm" value={zahtev.nivo} onChange={(e) => handleZahtevChange(index, 'nivo', e.target.value)}>
+                                                            <option value="POCETNI">Početni</option>
+                                                            <option value="SREDNJI">Srednji</option>
+                                                            <option value="NAPREDNI">Napredni</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="col">
+                                                        <label className="form-label small fw-bold">Prioritet:</label>
+                                                        <select className="form-select form-select-sm" value={zahtev.prioritet} onChange={(e) => handleZahtevChange(index, 'prioritet', e.target.value)}>
+                                                            <option value="NIZAK">Nizak</option>
+                                                            <option value="VISOK">Visok</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        <button type="submit" className="btn btn-primary w-100 mt-3 py-2">Objavi oglas</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Desna kolona: Lista aktivnih oglasa (kompaktna) */}
+                        <div className="col-md-7">
+                            <h4 className="mb-3 text-secondary">Moji aktivni oglasi</h4>
+                            
+                            {oglasi.length === 0 ? (
+                                <div className="alert alert-info text-center py-2">Trenutno nemate aktivnih oglasa. Napravite svoj prvi oglas levo!</div>
+                            ) : (
+                                <div className="d-flex flex-column gap-2 pe-2" style={{ maxHeight: '600px', overflowX: 'hidden', overflowY: 'auto' }}>
+                                    {oglasi.map((oglas, oIdx) => (
+                                        <div 
+                                            key={oglas.id || `oglas_${oIdx}`} 
+                                            className={`card shadow-sm border rounded ${prikazanePreporuke?.oglas.id === oglas.id ? 'border-warning bg-warning bg-opacity-10' : ''}`}
+                                        >
+                                            <div className="card-body p-2">
+                                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                                    <h6 className="card-title text-primary fw-bold mb-0">{oglas.naslov}</h6>
+                                                    <button 
+                                                        onClick={() => handleObrisiOglas(oglas.id)} 
+                                                        className="btn btn-sm btn-outline-danger py-0 px-2" 
+                                                        title="Trajno obriši oglas" 
+                                                        style={{ fontSize: '0.75rem' }}
+                                                    >
+                                                        🗑️ Ukloni
+                                                    </button>
+                                                </div>
+                                                
+                                                <div className="mb-2">
+                                                    {oglas.zahtevaneVestine && oglas.zahtevaneVestine.map((zv, idx) => (
+                                                        <span key={idx} className="badge bg-light text-secondary border me-1 mb-1" style={{ fontSize: '0.7rem', fontWeight: 'normal' }}>
+                                                            <strong className="text-dark">{zv.vestina?.id || zv.vestinaId}</strong> | {zv.nivo} | {zv.prioritet}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                
+                                                <div className="text-end mt-1">
+                                                    <button 
+                                                        onClick={() => handleVidiPreporuke(oglas)} 
+                                                        className={`btn btn-sm py-0 px-2 ${prikazanePreporuke?.oglas.id === oglas.id ? 'btn-warning text-dark fw-bold' : 'btn-outline-primary'}`}
+                                                        style={{ fontSize: '0.8rem' }}
+                                                    >
+                                                        {prikazanePreporuke?.oglas.id === oglas.id ? '👇 Kandidate vidi dole' : 'Vidi kandidate'}
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
-                                    <button type="submit" className="btn btn-primary w-100 mt-3 py-2">Objavi oglas</button>
-                                </form>
+                    {/* --- NOVI DONJI DEO 1: Dinamički panel za idealne kandidate --- */}
+                    {prikazanePreporuke && (
+                        <div className="row mt-5 pt-4 border-top animate__animated animate__fadeInUp">
+                            <div className="col-12">
+                                <div className="card shadow border-0 border-top border-warning border-4">
+                                    <div className="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                                        <h4 className="mb-0 text-dark">
+                                            Idealni kandidati za poziciju: <span className="text-primary">{prikazanePreporuke.oglas.naslov}</span>
+                                        </h4>
+                                        <button onClick={() => setPrikazanePreporuke(null)} className="btn btn-sm btn-outline-secondary">Zatvori panel</button>
+                                    </div>
+                                    <div className="card-body bg-light">
+                                        {prikazanePreporuke.kandidati.length > 0 ? (
+                                            <div className="table-responsive">
+                                                <table className="table table-hover align-middle bg-white shadow-sm rounded">
+                                                    <thead className="table-primary text-white">
+                                                        <tr>
+                                                            <th>Ime i Prezime</th>
+                                                            <th>Email adresa</th>
+                                                            <th className="text-center">Ukupno Bodova</th>
+                                                            <th className="text-center">Akcija</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {prikazanePreporuke.kandidati.map((stud, sIdx) => (
+                                                            <tr key={sIdx}>
+                                                                <td className="fw-bold">{stud.ime} {stud.prezime}</td>
+                                                                <td className="text-muted">{stud.id}</td>
+                                                                <td className="text-center">
+                                                                    <span className="badge bg-warning text-dark fs-5 py-2 px-3">{stud.bodovi || stud.ukupniBodovi}</span>
+                                                                </td>
+                                                                <td className="text-center">
+                                                                    <button className="btn btn-sm btn-success fw-bold">Kontaktiraj</button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div className="alert alert-warning text-center py-4 mb-0">
+                                                <h5 className="text-dark">Nema savršenih poklapanja.</h5>
+                                                <p className="text-muted mb-0">Trenutno nijedan student ne ispunjava sve visoko-prioritetne uslove za ovaj oglas.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* --- NOVI DONJI DEO 2: Tržište talenata (Svi aktivni studenti) --- */}
+                    <div className="row mt-5 pt-4 border-top">
+                        <div className="col-12 mb-3">
+                            <h4 className="text-secondary d-flex align-items-center">
+                                Tržište kandidata (Aktivni studenti) 
+                                <span className="badge bg-secondary rounded-pill ms-3 fs-6">{aktivniStudenti.length}</span>
+                            </h4>
+                            <p className="text-muted small">Ispod je lista svih studenata na platformi koji trenutno aktivno traže zaposlenje.</p>
+                        </div>
+                        
+                        <div className="col-12">
+                            {/* Scroll kontejner fiksne visine */}
+                            <div className="pe-2" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                                {aktivniStudenti.length === 0 ? (
+                                    <div className="alert alert-light border text-center text-muted py-3">Trenutno nema studenata koji aktivno traže posao.</div>
+                                ) : (
+                                    <div className="d-flex flex-column">
+                                        {aktivniStudenti.map((student, idx) => (
+                                            <div 
+                                                key={student.id || idx} 
+                                                className="d-flex justify-content-between align-items-center p-3 mb-2 bg-white border rounded shadow-sm"
+                                            >
+                                                {/* Levo: Ime i Prezime (Zauzima 1/3 prostora) */}
+                                                <div className="fw-bold text-dark d-flex align-items-center" style={{ flex: '1' }}>
+                                                    <span className="fs-5 me-3">🎓</span> 
+                                                    {student.ime} {student.prezime}
+                                                </div>
+                                                
+                                                {/* Sredina: Email adresa (Zauzima 1/3 prostora) */}
+                                                <div className="text-muted text-center" style={{ flex: '1' }}>
+                                                    📧 {student.email || student.id}
+                                                </div>
+                                                
+                                                {/* Desno: Dugme (Zauzima 1/3 prostora i poravnato udesno) */}
+                                                <div className="text-end" style={{ flex: '1' }}>
+                                                    <button className="btn btn-sm btn-outline-primary fw-bold px-4">
+                                                        Pogledaj profil
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Desna kolona: Lista aktivnih oglasa */}
-                    <div className="col-md-7">
-                        <h4 className="mb-3 text-secondary">Moji aktivni oglasi</h4>
-                        
-                        {oglasi.length === 0 ? (
-                            <div className="alert alert-info text-center">Trenutno nemate aktivnih oglasa. Napravite svoj prvi oglas levo!</div>
-                        ) : (
-                            <div className="row">
-                                {oglasi.map((oglas, oIdx) => (
-                                    <div key={oglas.id || `oglas_${oIdx}`} className="col-12 mb-3">
-                                        <div className="card shadow-sm border-start border-primary border-4">
-                                            <div className="card-body">
-                                                <h5 className="card-title text-primary mb-3">{oglas.naslov}</h5>
-                                                
-                                                {oglas.zahtevaneVestine && oglas.zahtevaneVestine.map((zv, idx) => (
-                                                    <span key={idx} className="badge bg-light text-dark border me-2 mb-2 p-2">
-                                                        <strong>{zv.vestina.id}</strong> | {zv.nivo} | {zv.prioritet}
-                                                    </span>
-                                                ))}
-                                                
-                                                <div className="mt-3 text-end">
-                                                    <button onClick={() => handleVidiPreporuke(oglas.id)} className="btn btn-sm btn-outline-success fw-bold">
-                                                        Vidi preporučene studente
-                                                    </button>
-                                                </div>
-
-                                                {rangLista[oglas.id] && (
-                                                    <div className="mt-3 animate__animated animate__fadeIn">
-                                                        <h6 className="text-muted border-bottom pb-1">Najbolji kandidati:</h6>
-                                                        {rangLista[oglas.id].length > 0 ? (
-                                                            <table className="table table-sm table-borderless align-middle">
-                                                                <thead className="table-light">
-                                                                    <tr style={{ fontSize: '0.85rem' }}>
-                                                                        <th>Ime i Prezime</th>
-                                                                        <th className="text-center">Bodovi</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {rangLista[oglas.id].map((stud, sIdx) => (
-                                                                        <tr key={sIdx} style={{ fontSize: '0.9rem' }}>
-                                                                            <td>{stud.ime} {stud.prezime}</td>
-                                                                            <td className="text-center">
-                                                                                <span className="badge bg-warning text-dark fs-6">{stud.bodovi || stud.ukupniBodovi}</span>
-                                                                            </td>
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        ) : (
-                                                            <div className="alert alert-light text-center py-2 text-muted">Nema kandidata koji ispunjavaju ove uslove.</div>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                </>
             )}
         </div>
     );

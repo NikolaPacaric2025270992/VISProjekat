@@ -9,9 +9,7 @@ function AgencijaDashboard() {
     const [vestine, setVestine] = useState([]);
     const [oglasi, setOglasi] = useState([]); 
     
-    // NOVO: Stanje za prikaz preporuka u donjem panelu (umesto starog rangLista)
     const [prikazanePreporuke, setPrikazanePreporuke] = useState(null); 
-    // NOVO: Stanje za sve studente koji aktivno traže posao
     const [aktivniStudenti, setAktivniStudenti] = useState([]);
 
     const [naslovOglasa, setNaslovOglasa] = useState('');
@@ -26,6 +24,10 @@ function AgencijaDashboard() {
     const [trenutnaLozinka, setTrenutnaLozinka] = useState('');
     const [novaLozinka, setNovaLozinka] = useState('');
     const [potvrdaLozinke, setPotvrdaLozinke] = useState('');
+
+    // Stanja za IMPORT fajlova
+    const [importFajl, setImportFajl] = useState(null);
+    const [importLoading, setImportLoading] = useState(false);
 
     useEffect(() => {
         const ulogovanKorisnik = localStorage.getItem('user');
@@ -52,7 +54,6 @@ function AgencijaDashboard() {
             .then(res => setOglasi(res.data))
             .catch(err => console.error("Greška pri učitavanju oglasa:", err));
 
-        // NOVO: Dohvatanje svih aktivnih studenata sa tržišta
         axios.get('http://localhost:8080/api/studenti/aktivni')
             .then(res => setAktivniStudenti(res.data))
             .catch(err => console.error("Greška pri učitavanju aktivnih studenata:", err));
@@ -118,7 +119,6 @@ function AgencijaDashboard() {
             try {
                 await axios.delete(`http://localhost:8080/api/oglasi/obrisi/${id}`);
                 setOglasi(oglasi.filter(o => o.id !== id));
-                // Ako brišemo oglas koji je trenutno otvoren u donjem panelu, zatvori taj panel
                 if (prikazanePreporuke && prikazanePreporuke.oglas.id === id) {
                     setPrikazanePreporuke(null);
                 }
@@ -165,13 +165,40 @@ function AgencijaDashboard() {
         }
     };
 
-    // IZMENJENO: Čuva oglas i kandidate u stanje, a zatim pravi lagani animirani "scroll" do panela
+    const handleImportOglasa = async (e) => {
+        e.preventDefault();
+        if (!importFajl) {
+            alert("Molimo vas da prvo izaberete JSON ili XML fajl.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("fajl", importFajl); 
+        formData.append("agencijaId", agencija.id); 
+
+        setImportLoading(true);
+        try {
+            await axios.post('http://localhost:8080/api/oglasi/import', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            alert("Oglasi su uspješno importovani!");
+            const res = await axios.get(`http://localhost:8080/api/oglasi/agencija/${agencija.id}`);
+            setOglasi(res.data);
+            setImportFajl(null);
+            document.getElementById('importFileInput').value = ''; 
+        } catch (error) {
+            console.error("Greška pri importu:", error);
+            alert("Došlo je do greške prilikom importa. Provjerite da li je format fajla ispravan (JSON/XML).");
+        } finally {
+            setImportLoading(false);
+        }
+    };
+
     const handleVidiPreporuke = async (oglas) => {
         try {
             const res = await axios.get(`http://localhost:8080/api/oglasi/${oglas.id}/rang-lista`);
             setPrikazanePreporuke({ oglas: oglas, kandidati: res.data });
             
-            // Glatki prelaz (skrol) prema dnu ekrana
             setTimeout(() => {
                 window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
             }, 100);
@@ -213,7 +240,7 @@ function AgencijaDashboard() {
             </div>
 
             {prikaziPodesavanja ? (
-                /* PRIKAZ: PODEŠAVANJA AGENCIJE */
+                /* PODEŠAVANJA AGENCIJE */
                 <div className="row justify-content-center animate__animated animate__fadeIn">
                     <div className="col-md-6">
                         <div className="card shadow-sm border-0">
@@ -257,16 +284,46 @@ function AgencijaDashboard() {
                     </div>
                 </div>
             ) : (
-                /* PRIKAZ: STANDARDNI DASHBOARD (Oglasi) */
+                /* STANDARDNI DASHBOARD */
                 <>
                     <div className="row animate__animated animate__fadeIn">
-                        {/* Leva kolona: Forma sa dinamičkim veštinama */}
+                        
+                        {/* Leva kolona: Centralna forma za dodavanje oglasa (Import + Manuelno) */}
                         <div className="col-md-5">
-                            <div className="card shadow-sm border-0">
+                            <div className="card shadow-sm border-0 mb-4">
                                 <div className="card-header bg-primary text-white py-3">
-                                    <h5 className="mb-0">Kreiraj novi oglas</h5>
+                                    <h5 className="mb-0">Dodaj nove oglase</h5>
                                 </div>
                                 <div className="card-body">
+                                    
+                                    {/* DEO 1: IMPORT (Kompaktno na vrhu) */}
+                                    <div className="mb-4 bg-light p-3 rounded border border-primary border-opacity-50">
+                                        <h6 className="fw-bold text-primary mb-2 small">Masovni unos (JSON/XML)</h6>
+                                        <form onSubmit={handleImportOglasa} className="d-flex gap-2">
+                                            <input 
+                                                id="importFileInput"
+                                                type="file" 
+                                                className="form-control form-control-sm" 
+                                                accept=".json,.xml" 
+                                                onChange={(e) => setImportFajl(e.target.files[0])} 
+                                            />
+                                            <button 
+                                                type="submit" 
+                                                className="btn btn-sm btn-primary text-white fw-bold px-3 text-nowrap" 
+                                                disabled={importLoading || !importFajl}
+                                            >
+                                                {importLoading ? '⏳...' : '📥 Importuj'}
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    {/* VIZUELNI PREKID */}
+                                    <div className="text-center text-muted mb-4 position-relative">
+                                        <hr className="position-absolute w-100" style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 0 }} />
+                                        <span className="bg-white px-2 position-relative fw-bold" style={{ fontSize: '0.8rem', zIndex: 1 }}>ILI UNESITE MANUELNO</span>
+                                    </div>
+
+                                    {/* DEO 2: MANUELNI UNOS (Ispod) */}
                                     <form onSubmit={handleDodajOglas}>
                                         <div className="mb-4">
                                             <label className="form-label fw-bold">Naslov pozicije:</label>
@@ -320,14 +377,14 @@ function AgencijaDashboard() {
                             </div>
                         </div>
 
-                        {/* Desna kolona: Lista aktivnih oglasa (kompaktna) */}
+                        {/* Desna kolona: Lista aktivnih oglasa */}
                         <div className="col-md-7">
                             <h4 className="mb-3 text-secondary">Moji aktivni oglasi</h4>
                             
                             {oglasi.length === 0 ? (
                                 <div className="alert alert-info text-center py-2">Trenutno nemate aktivnih oglasa. Napravite svoj prvi oglas levo!</div>
                             ) : (
-                                <div className="d-flex flex-column gap-2 pe-2" style={{ maxHeight: '600px', overflowX: 'hidden', overflowY: 'auto' }}>
+                                <div className="d-flex flex-column gap-2 pe-2" style={{ maxHeight: '750px', overflowX: 'hidden', overflowY: 'auto' }}>
                                     {oglasi.map((oglas, oIdx) => (
                                         <div 
                                             key={oglas.id || `oglas_${oIdx}`} 
@@ -371,7 +428,7 @@ function AgencijaDashboard() {
                         </div>
                     </div>
 
-                    {/* --- NOVI DONJI DEO 1: Dinamički panel za idealne kandidate --- */}
+                    {/* --- DONJI PANELI (Preporuke i Svi Studenti) --- */}
                     {prikazanePreporuke && (
                         <div className="row mt-5 pt-4 border-top animate__animated animate__fadeInUp">
                             <div className="col-12">
@@ -381,7 +438,6 @@ function AgencijaDashboard() {
                                             Idealni kandidati za poziciju: <span className="text-primary">{prikazanePreporuke.oglas.naslov}</span>
                                         </h4>
                                         <div>
-                                            {/* Dugmići za EXPORT sa disabled logikom */}
                                             <button 
                                                 onClick={() => preuzmiFajl(`http://localhost:8080/api/oglasi/${prikazanePreporuke.oglas.id}/rang-lista/export`, 'json', 'kandidati')}
                                                 className="btn btn-sm btn-outline-secondary me-2"
@@ -436,7 +492,6 @@ function AgencijaDashboard() {
                         </div>
                     )}
 
-                    {/* --- NOVI DONJI DEO 2: Tržište talenata (Svi aktivni studenti) --- */}
                     <div className="row mt-5 pt-4 border-top">
                         <div className="col-12 mb-3 d-flex justify-content-between align-items-center">
                             <div>
@@ -447,7 +502,6 @@ function AgencijaDashboard() {
                                 <p className="text-muted small mb-0">Ispod je lista svih studenata na platformi koji trenutno aktivno traže zaposlenje.</p>
                             </div>
                             <div>
-                                {/* Dugmići za EXPORT cele baze */}
                                 <button 
                                     onClick={() => preuzmiFajl('http://localhost:8080/api/studenti/aktivni/export', 'json', 'svi_kandidati')}
                                     className="btn btn-sm btn-outline-secondary me-2"
@@ -462,7 +516,6 @@ function AgencijaDashboard() {
                         </div>
                         
                         <div className="col-12">
-                            {/* Scroll kontejner fiksne visine */}
                             <div className="pe-2" style={{ maxHeight: '400px', overflowY: 'auto' }}>
                                 {aktivniStudenti.length === 0 ? (
                                     <div className="alert alert-light border text-center text-muted py-3">Trenutno nema studenata koji aktivno traže posao.</div>
@@ -473,18 +526,13 @@ function AgencijaDashboard() {
                                                 key={student.id || idx} 
                                                 className="d-flex justify-content-between align-items-center p-3 mb-2 bg-white border rounded shadow-sm"
                                             >
-                                                {/* Levo: Ime i Prezime (Zauzima 1/3 prostora) */}
                                                 <div className="fw-bold text-dark d-flex align-items-center" style={{ flex: '1' }}>
                                                     <span className="fs-5 me-3">🎓</span> 
                                                     {student.ime} {student.prezime}
                                                 </div>
-                                                
-                                                {/* Sredina: Email adresa (Zauzima 1/3 prostora) */}
                                                 <div className="text-muted text-center" style={{ flex: '1' }}>
                                                     📧 {student.email || student.id}
                                                 </div>
-                                                
-                                                {/* Desno: Dugme (Zauzima 1/3 prostora i poravnato udesno) */}
                                                 <div className="text-end" style={{ flex: '1' }}>
                                                     <button className="btn btn-sm btn-outline-primary fw-bold px-4">
                                                         Pogledaj profil

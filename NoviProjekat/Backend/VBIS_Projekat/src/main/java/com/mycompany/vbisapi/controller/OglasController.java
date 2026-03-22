@@ -68,15 +68,27 @@ public class OglasController {
         }
     }
     
-    @PostMapping("/upload")
-    public ResponseEntity<?> uploadOglasa(@RequestParam("fajl") MultipartFile fajl) {
+    // IZMENJENO: Putanja je sada /import, a metoda prima i agencijaId
+    @PostMapping("/import")
+    public ResponseEntity<?> importOglasa(
+            @RequestParam("fajl") MultipartFile fajl,
+            @RequestParam("agencijaId") String agencijaId) {
+        
         try {
-            // 1. Validacija i parsiranje
+            // 1. Validacija i parsiranje (ImportService ostaje isti)
             List<Oglas> noviOglasi = importService.obradiFajlSaOglasima(fajl);
             
             // 2. Čuvanje u bazu (i Arango i Fuseki)
             int brojSacuvanih = 0;
             for (Oglas o : noviOglasi) {
+                
+                // KLJUČNO: Pregazimo agencijaId iz fajla stvarnim ID-jem ulogovane agencije
+                o.setAgencijaId(agencijaId);
+                
+                // (Opciono) Ako želiš da budeš 100% siguran da ID oglasa neće napraviti konflikt, 
+                // možeš ovde dodati i generisanje jedinstvenog ID-ja:
+                // o.setId("oglas_" + System.currentTimeMillis() + "_" + brojSacuvanih);
+                
                 oglasService.postaviOglas(o);
                 brojSacuvanih++;
             }
@@ -84,7 +96,7 @@ public class OglasController {
             return ResponseEntity.ok("Uspešno validirano i sačuvano " + brojSacuvanih + " oglasa.");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Greška pri uploadu: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Greška pri importu: " + e.getMessage());
         }
     }
     

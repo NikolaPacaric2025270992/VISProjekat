@@ -28,6 +28,10 @@ function StudentDashboard() {
     const [novaLozinka, setNovaLozinka] = useState('');
     const [potvrdaLozinke, setPotvrdaLozinke] = useState('');
 
+    // Stanja za IMPORT fajlova
+    const [importFajl, setImportFajl] = useState(null);
+    const [importLoading, setImportLoading] = useState(false);
+
     useEffect(() => {
         const ulogovanKorisnik = localStorage.getItem('user');
         const rola = localStorage.getItem('role');
@@ -48,7 +52,6 @@ function StudentDashboard() {
             .then(res => setPreporuceniOglasi(res.data))
             .catch(err => console.error("Greška pri učitavanju preporuka:", err));
 
-        // NOVO: Dohvatanje apsolutno svih oglasa u bazi za tržište rada
         axios.get('http://localhost:8080/api/oglasi/svi')
             .then(res => setSviOglasi(res.data))
             .catch(err => console.error("Greška pri učitavanju svih oglasa:", err));
@@ -143,6 +146,42 @@ function StudentDashboard() {
         } catch (error) { alert("Greška pri čuvanju."); }
     };
 
+    const handleImportPolaganja = async (e) => {
+        e.preventDefault();
+        if (!importFajl) {
+            alert("Molimo vas da prvo izaberete JSON ili XML fajl.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("fajl", importFajl); 
+        formData.append("studentId", student.id); 
+
+        setImportLoading(true);
+        try {
+            await axios.post('http://localhost:8080/api/studenti/import-polaganja', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            alert("Položeni ispiti su uspešno importovani!");
+            
+            // Osvežavamo tabelu polaganja
+            const resPolaganja = await axios.get(`http://localhost:8080/api/polaganja/student/${student.id}`);
+            setPolaganja(resPolaganja.data);
+
+            // Osvežavamo tabelu preporuka pošto su došli novi ispiti
+            const resPreporuke = await axios.get(`http://localhost:8080/api/studenti/${student.email}/preporuke`);
+            setPreporuceniOglasi(resPreporuke.data);
+
+            setImportFajl(null);
+            document.getElementById('importFileInput').value = ''; 
+        } catch (error) {
+            console.error("Greška pri importu polaganja:", error);
+            alert("Došlo je do greške prilikom importa. Provjerite da li je format fajla ispravan (JSON/XML).");
+        } finally {
+            setImportLoading(false);
+        }
+    };
+
     const preuzmiFajl = async (url, format, filename) => {
         try {
             const res = await axios.get(`${url}?format=${format}`, { responseType: 'blob' });
@@ -228,11 +267,40 @@ function StudentDashboard() {
                     {/* Gornji red: Unos ispita i Tabela */}
                     <div className="row animate__animated animate__fadeIn">
                         <div className="col-md-5">
-                            <div className="card shadow-sm border-0">
+                            <div className="card shadow-sm border-0 mb-4">
                                 <div className="card-header bg-success text-white py-3">
                                     <h5 className="mb-0">Evidentiraj novi ispit</h5>
                                 </div>
                                 <div className="card-body">
+                                    
+                                    {/* DEO 1: IMPORT (Kompaktno na vrhu) */}
+                                    <div className="mb-4 bg-light p-3 rounded border border-success border-opacity-50">
+                                        <h6 className="fw-bold text-success mb-2 small">Masovni unos (JSON/XML)</h6>
+                                        <form onSubmit={handleImportPolaganja} className="d-flex gap-2">
+                                            <input 
+                                                id="importFileInput"
+                                                type="file" 
+                                                className="form-control form-control-sm" 
+                                                accept=".json,.xml" 
+                                                onChange={(e) => setImportFajl(e.target.files[0])} 
+                                            />
+                                            <button 
+                                                type="submit" 
+                                                className="btn btn-sm btn-success text-white fw-bold px-3 text-nowrap" 
+                                                disabled={importLoading || !importFajl}
+                                            >
+                                                {importLoading ? '⏳...' : '📥 Importuj'}
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    {/* VIZUELNI PREKID */}
+                                    <div className="text-center text-muted mb-4 position-relative">
+                                        <hr className="position-absolute w-100" style={{ top: '50%', transform: 'translateY(-50%)', zIndex: 0 }} />
+                                        <span className="bg-white px-2 position-relative fw-bold" style={{ fontSize: '0.8rem', zIndex: 1 }}>ILI UNESITE MANUELNO</span>
+                                    </div>
+
+                                    {/* DEO 2: MANUELNI UNOS */}
                                     <form onSubmit={handleDodajPolaganje} className="position-relative">
                                         <label className="form-label fw-bold">Pretraži predmet:</label>
                                         <input type="text" className="form-control" placeholder="Kucaj naziv predmeta..." value={searchQuery} onChange={handleSearchChange} />
@@ -257,7 +325,7 @@ function StudentDashboard() {
 
                         <div className="col-md-7">
                             <h4 className="mb-3 text-secondary">Moji položeni ispiti</h4>
-                            <div className="table-responsive shadow-sm" style={{ maxHeight: '350px', overflowY: 'auto' }}>
+                            <div className="table-responsive shadow-sm" style={{ maxHeight: '450px', overflowY: 'auto' }}>
                                 <table className="table table-hover bg-white border mb-0">
                                     <thead className="table-success text-white position-sticky top-0" style={{ zIndex: 1 }}>
                                         <tr>

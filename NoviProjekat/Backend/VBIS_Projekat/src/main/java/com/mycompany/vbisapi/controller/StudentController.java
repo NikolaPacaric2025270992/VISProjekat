@@ -93,15 +93,26 @@ public class StudentController {
         }
     }
     
-    @PostMapping("/upload-polaganja")
-    public ResponseEntity<?> uploadPolaganja(@RequestParam("fajl") MultipartFile fajl) {
+    // IZMENJENO: Promenjena putanja i dodat parametar studentId
+    @PostMapping("/import-polaganja")
+    public ResponseEntity<?> importPolaganja(
+            @RequestParam("fajl") MultipartFile fajl,
+            @RequestParam("studentId") String studentId) {
+        
         try {
-            // 1. Validacija i parsiranje
+            // 1. Validacija i parsiranje (ImportService ostaje isti)
             List<Polaganje> novaPolaganja = importService.obradiFajlSaPolaganjima(fajl);
             
             // 2. Čuvanje u bazu (Arango i Fuseki)
             int brojSacuvanih = 0;
             for (Polaganje p : novaPolaganja) {
+                
+                // KLJUČNO: Pregazimo studentId iz fajla onim ko je zaista kliknuo "Import"
+                p.setStudentId(studentId);
+                
+                // Generišemo jedinstven ID za polaganje da bismo izbegli kolizije
+                p.setId("polaganje_" + System.currentTimeMillis() + "_" + brojSacuvanih);
+                
                 polaganjeService.dodajPolaganje(p);
                 brojSacuvanih++;
             }
@@ -109,7 +120,7 @@ public class StudentController {
             return ResponseEntity.ok("Uspešno validirano i sačuvano " + brojSacuvanih + " položenih ispita.");
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Greška pri uploadu polaganja: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Greška pri importu polaganja: " + e.getMessage());
         }
     }
     

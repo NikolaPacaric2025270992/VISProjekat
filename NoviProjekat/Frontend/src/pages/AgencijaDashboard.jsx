@@ -181,6 +181,19 @@ function AgencijaDashboard() {
         }
     };
 
+    const preuzmiFajl = async (url, format, filename) => {
+        try {
+            const res = await axios.get(`${url}?format=${format}`, { responseType: 'blob' });
+            const blob = new Blob([res.data]);
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `${filename}.${format}`;
+            link.click();
+        } catch (error) {
+            alert("Greška pri preuzimanju fajla.");
+        }
+    };
+
     if (!agencija) return <div className="text-center mt-5">Učitavanje...</div>;
 
     return (
@@ -367,7 +380,21 @@ function AgencijaDashboard() {
                                         <h4 className="mb-0 text-dark">
                                             Idealni kandidati za poziciju: <span className="text-primary">{prikazanePreporuke.oglas.naslov}</span>
                                         </h4>
-                                        <button onClick={() => setPrikazanePreporuke(null)} className="btn btn-sm btn-outline-secondary">Zatvori panel</button>
+                                        <div>
+                                            {/* Dugmići za EXPORT sa disabled logikom */}
+                                            <button 
+                                                onClick={() => preuzmiFajl(`http://localhost:8080/api/oglasi/${prikazanePreporuke.oglas.id}/rang-lista/export`, 'json', 'kandidati')}
+                                                className="btn btn-sm btn-outline-secondary me-2"
+                                                disabled={prikazanePreporuke.kandidati.length === 0}
+                                            >📥 JSON</button>
+                                            <button 
+                                                onClick={() => preuzmiFajl(`http://localhost:8080/api/oglasi/${prikazanePreporuke.oglas.id}/rang-lista/export`, 'xml', 'kandidati')}
+                                                className="btn btn-sm btn-outline-secondary me-3"
+                                                disabled={prikazanePreporuke.kandidati.length === 0}
+                                            >📥 XML</button>
+                                            
+                                            <button onClick={() => setPrikazanePreporuke(null)} className="btn btn-sm btn-secondary">Zatvori panel</button>
+                                        </div>
                                     </div>
                                     <div className="card-body bg-light">
                                         {prikazanePreporuke.kandidati.length > 0 ? (
@@ -411,12 +438,27 @@ function AgencijaDashboard() {
 
                     {/* --- NOVI DONJI DEO 2: Tržište talenata (Svi aktivni studenti) --- */}
                     <div className="row mt-5 pt-4 border-top">
-                        <div className="col-12 mb-3">
-                            <h4 className="text-secondary d-flex align-items-center">
-                                Tržište kandidata (Aktivni studenti) 
-                                <span className="badge bg-secondary rounded-pill ms-3 fs-6">{aktivniStudenti.length}</span>
-                            </h4>
-                            <p className="text-muted small">Ispod je lista svih studenata na platformi koji trenutno aktivno traže zaposlenje.</p>
+                        <div className="col-12 mb-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <h4 className="text-secondary d-flex align-items-center mb-1">
+                                    Tržište kandidata (Aktivni studenti) 
+                                    <span className="badge bg-secondary rounded-pill ms-3 fs-6">{aktivniStudenti.length}</span>
+                                </h4>
+                                <p className="text-muted small mb-0">Ispod je lista svih studenata na platformi koji trenutno aktivno traže zaposlenje.</p>
+                            </div>
+                            <div>
+                                {/* Dugmići za EXPORT cele baze */}
+                                <button 
+                                    onClick={() => preuzmiFajl('http://localhost:8080/api/studenti/aktivni/export', 'json', 'svi_kandidati')}
+                                    className="btn btn-sm btn-outline-secondary me-2"
+                                    disabled={aktivniStudenti.length === 0}
+                                >📥 Export JSON</button>
+                                <button 
+                                    onClick={() => preuzmiFajl('http://localhost:8080/api/studenti/aktivni/export', 'xml', 'svi_kandidati')}
+                                    className="btn btn-sm btn-outline-secondary"
+                                    disabled={aktivniStudenti.length === 0}
+                                >📥 Export XML</button>
+                            </div>
                         </div>
                         
                         <div className="col-12">

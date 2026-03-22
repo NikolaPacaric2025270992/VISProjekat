@@ -6,6 +6,7 @@ package com.mycompany.vbisapi.controller;
 
 import com.mycompany.vbisapi.model.Oglas;
 import com.mycompany.vbisapi.model.RangiraniStudent;
+import com.mycompany.vbisapi.service.ExportService;
 import com.mycompany.vbisapi.service.FusekiService;
 import com.mycompany.vbisapi.service.ImportService;
 import com.mycompany.vbisapi.service.OglasService;
@@ -42,6 +43,8 @@ public class OglasController {
     @Autowired
     private ImportService importService;
     
+    @Autowired
+    private ExportService exportService;
     
     @PostMapping("/postavi")
     public String postavioglas(@RequestBody Oglas o){
@@ -107,6 +110,40 @@ public class OglasController {
             return ResponseEntity.ok(sviOglasi);
         } catch (Exception e) {
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    // 3. EXPORT: Svi oglasi sa tržišta (Za Studenta)
+    @GetMapping("/svi/export")
+    public ResponseEntity<byte[]> exportSviOglasi(@RequestParam(defaultValue = "json") String format) {
+        try {
+            List<Oglas> sviOglasi = oglasService.dobijSveOglase();
+            byte[] fajl = format.equalsIgnoreCase("xml") ? exportService.eksportujUXml(sviOglasi) : exportService.eksportujUJson(sviOglasi);
+            String ekstenzija = format.equalsIgnoreCase("xml") ? ".xml" : ".json";
+            
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"svi_oglasi" + ekstenzija + "\"")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+                    .body(fajl);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // 4. EXPORT: Idealni kandidati za konkretan oglas (Za Agenciju)
+    @GetMapping("/{id}/rang-lista/export")
+    public ResponseEntity<byte[]> exportRangListaOglasa(@PathVariable String id, @RequestParam(defaultValue = "json") String format) {
+        try {
+            List<RangiraniStudent> kandidati = fusekiService.getRangListaStudenata(id, 1, 100);
+            byte[] fajl = format.equalsIgnoreCase("xml") ? exportService.eksportujUXml(kandidati) : exportService.eksportujUJson(kandidati);
+            String ekstenzija = format.equalsIgnoreCase("xml") ? ".xml" : ".json";
+            
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"idealni_kandidati_" + id + ekstenzija + "\"")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+                    .body(fajl);
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

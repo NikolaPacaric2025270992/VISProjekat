@@ -8,6 +8,7 @@ import com.mycompany.vbisapi.model.LoginDTO;
 import com.mycompany.vbisapi.model.Polaganje;
 import com.mycompany.vbisapi.model.PreporuceniOglas;
 import com.mycompany.vbisapi.model.Student;
+import com.mycompany.vbisapi.service.ExportService;
 import com.mycompany.vbisapi.service.FusekiService;
 import com.mycompany.vbisapi.service.ImportService;
 import com.mycompany.vbisapi.service.PolaganjeService;
@@ -43,6 +44,9 @@ public class StudentController {
     
     @Autowired
     private PolaganjeService polaganjeService;
+    
+    @Autowired
+    private ExportService exportService;
     
     @PostMapping("/login")
     public ResponseEntity<?> loginStudent(@RequestBody LoginDTO loginPodaci) {
@@ -126,6 +130,40 @@ public class StudentController {
             return ResponseEntity.ok(aktivniStudenti);
         } catch (Exception e) {
             e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    // 1. EXPORT: Svi aktivni studenti (Za Agenciju)
+    @GetMapping("/aktivni/export")
+    public ResponseEntity<byte[]> exportAktivniStudenti(@RequestParam(defaultValue = "json") String format) {
+        try {
+            List<Student> aktivni = studentService.nadjiAktivneStudente();
+            byte[] fajl = format.equalsIgnoreCase("xml") ? exportService.eksportujUXml(aktivni) : exportService.eksportujUJson(aktivni);
+            String ekstenzija = format.equalsIgnoreCase("xml") ? ".xml" : ".json";
+            
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"aktivni_studenti" + ekstenzija + "\"")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+                    .body(fajl);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // 2. EXPORT: Preporučeni oglasi za studenta (Za Studenta)
+    @GetMapping("/{email}/preporuke/export")
+    public ResponseEntity<byte[]> exportPreporukeStudenta(@PathVariable String email, @RequestParam(defaultValue = "json") String format) {
+        try {
+            List<PreporuceniOglas> preporuke = fusekiService.getPreporukeZaStudenta(email, 1, 100); // 100 da bi povukao sve bitne
+            byte[] fajl = format.equalsIgnoreCase("xml") ? exportService.eksportujUXml(preporuke) : exportService.eksportujUJson(preporuke);
+            String ekstenzija = format.equalsIgnoreCase("xml") ? ".xml" : ".json";
+            
+            return ResponseEntity.ok()
+                    .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"preporuceni_oglasi" + ekstenzija + "\"")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+                    .body(fajl);
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

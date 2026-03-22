@@ -143,6 +143,19 @@ function StudentDashboard() {
         } catch (error) { alert("Greška pri čuvanju."); }
     };
 
+    const preuzmiFajl = async (url, format, filename) => {
+        try {
+            const res = await axios.get(`${url}?format=${format}`, { responseType: 'blob' });
+            const blob = new Blob([res.data]);
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `${filename}.${format}`;
+            link.click();
+        } catch (error) {
+            alert("Greška pri preuzimanju fajla.");
+        }
+    };
+
     if (!student) return <div className="text-center mt-5">Učitavanje...</div>;
 
     return (
@@ -277,39 +290,60 @@ function StudentDashboard() {
                         </div>
                     </div>
 
-                    {/* Dve kolone za Oglase (NOVO: Svi Oglasi vs Preporučeni Oglasi) */}
+                    {/* Dve kolone za Oglase (NOVO: Kompaktni List View sa Export dugmićima) */}
                     <div className="row mt-5 pt-3 border-top animate__animated animate__fadeInUp">
                         
                         {/* Leva Kolona: Svi Oglasi sa tržišta */}
                         <div className="col-lg-6 mb-4">
                             <h4 className="mb-3 text-secondary d-flex justify-content-between align-items-center pb-2 border-bottom">
-                                <span>Tržište rada (Svi oglasi)</span>
-                                <span className="badge bg-secondary rounded-pill">{sviOglasi.length}</span>
+                                <div>
+                                    <span>Tržište rada (Svi oglasi)</span>
+                                    <span className="badge bg-secondary rounded-pill ms-2">{sviOglasi.length}</span>
+                                </div>
+                                <div>
+                                    {/* Export dugmići sa disabled logikom */}
+                                    <button 
+                                        onClick={() => preuzmiFajl('http://localhost:8080/api/oglasi/svi/export', 'json', 'svi_oglasi')}
+                                        className="btn btn-sm btn-outline-secondary me-1"
+                                        disabled={sviOglasi.length === 0} title="Preuzmi kao JSON"
+                                    >📥 JSON</button>
+                                    <button 
+                                        onClick={() => preuzmiFajl('http://localhost:8080/api/oglasi/svi/export', 'xml', 'svi_oglasi')}
+                                        className="btn btn-sm btn-outline-secondary"
+                                        disabled={sviOglasi.length === 0} title="Preuzmi kao XML"
+                                    >📥 XML</button>
+                                </div>
                             </h4>
                             
                             <div className="pe-2" style={{ maxHeight: '600px', overflowY: 'auto' }}>
                                 {sviOglasi.length === 0 ? (
-                                    <div className="alert alert-light text-center border text-muted">Trenutno nema otvorenih pozicija.</div>
+                                    <div className="alert alert-light border text-center text-muted py-3">Trenutno nema otvorenih pozicija na tržištu.</div>
                                 ) : (
-                                    sviOglasi.map((oglas, idx) => (
-                                        <div key={oglas.id || idx} className="card shadow-sm mb-3 border-start border-secondary border-4">
-                                            <div className="card-body">
-                                                <h6 className="card-title text-dark fw-bold mb-1">{oglas.naslov}</h6>
-                                                <p className="text-muted small mb-3">ID Oglasa: {oglas.oglasID || oglas.id}</p>
+                                    <div className="d-flex flex-column">
+                                        {sviOglasi.map((oglas, idx) => (
+                                            <div key={oglas.id || idx} className="d-flex justify-content-between align-items-center p-3 mb-2 bg-white border rounded shadow-sm">
                                                 
-                                                {/* Prikaz traženih veština za oglas (ukoliko postoje) */}
-                                                <div className="mb-3">
-                                                    {oglas.zahtevaneVestine && oglas.zahtevaneVestine.map((zv, zIdx) => (
-                                                        <span key={zIdx} className="badge bg-light text-secondary border me-1 mb-1" style={{ fontSize: '0.75rem' }}>
-                                                            {zv.vestina?.id || zv.vestinaId}
-                                                        </span>
-                                                    ))}
+                                                {/* Levo: Naslov, Veštine i ID */}
+                                                <div className="d-flex flex-column" style={{ flex: '1' }}>
+                                                    <h6 className="fw-bold text-dark mb-1">{oglas.naslov}</h6>
+                                                    <div className="mb-1">
+                                                        {oglas.zahtevaneVestine && oglas.zahtevaneVestine.map((zv, zIdx) => (
+                                                            <span key={zIdx} className="badge bg-light text-secondary border me-1" style={{ fontSize: '0.7rem', fontWeight: 'normal' }}>
+                                                                {zv.vestina?.id || zv.vestinaId}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                    <small className="text-muted" style={{ fontSize: '0.7rem' }}>ID: {oglas.oglasID || oglas.id}</small>
                                                 </div>
 
-                                                <button className="btn btn-sm btn-outline-secondary w-100">Vidi detalje</button>
+                                                {/* Desno: Dugme */}
+                                                <div className="text-end ms-2">
+                                                    <button className="btn btn-sm btn-outline-secondary fw-bold px-3">Detalji</button>
+                                                </div>
+
                                             </div>
-                                        </div>
-                                    ))
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -317,31 +351,55 @@ function StudentDashboard() {
                         {/* Desna Kolona: Preporučeni poslovi */}
                         <div className="col-lg-6 mb-4">
                             <h4 className="mb-3 text-success d-flex justify-content-between align-items-center pb-2 border-bottom">
-                                <span>Preporučeni za tebe 🌟</span>
-                                <span className="badge bg-success rounded-pill">{preporuceniOglasi.length}</span>
+                                <div>
+                                    <span>Preporučeni za tebe 🌟</span>
+                                    <span className="badge bg-success rounded-pill ms-2">{preporuceniOglasi.length}</span>
+                                </div>
+                                <div>
+                                    {/* Export dugmići sa disabled logikom */}
+                                    <button 
+                                        onClick={() => preuzmiFajl(`http://localhost:8080/api/studenti/${student.email}/preporuke/export`, 'json', 'preporuke')}
+                                        className="btn btn-sm btn-outline-success me-1"
+                                        disabled={preporuceniOglasi.length === 0} title="Preuzmi kao JSON"
+                                    >📥 JSON</button>
+                                    <button 
+                                        onClick={() => preuzmiFajl(`http://localhost:8080/api/studenti/${student.email}/preporuke/export`, 'xml', 'preporuke')}
+                                        className="btn btn-sm btn-outline-success"
+                                        disabled={preporuceniOglasi.length === 0} title="Preuzmi kao XML"
+                                    >📥 XML</button>
+                                </div>
                             </h4>
                             
                             <div className="pe-2" style={{ maxHeight: '600px', overflowY: 'auto' }}>
                                 {preporuceniOglasi.length === 0 ? (
-                                    <div className="alert alert-success bg-opacity-10 text-center border shadow-sm text-success py-4">
+                                    <div className="alert alert-success bg-opacity-10 text-center border border-success border-opacity-25 shadow-sm text-success py-4">
                                         Trenutno nemamo poslova koji se poklapaju sa tvojim veštinama. <br/>
                                         <strong>Položi još neki ispit da otključaš preporuke!</strong>
                                     </div>
                                 ) : (
-                                    preporuceniOglasi.map((oglas, idx) => (
-                                        <div key={oglas.id || idx} className="card shadow-sm mb-3 border-start border-primary border-4 bg-light">
-                                            <div className="card-body">
-                                                <div className="d-flex justify-content-between align-items-start mb-2">
-                                                    <h6 className="card-title text-success fw-bold mb-0">{oglas.naslov}</h6>
-                                                    <span className="badge bg-warning text-dark" title="Tvoj skor za ovaj oglas">
-                                                        Bodovi: {oglas.bodovi || oglas.ukupniBodovi || 'N/A'}
-                                                    </span>
+                                    <div className="d-flex flex-column">
+                                        {preporuceniOglasi.map((oglas, idx) => (
+                                            <div key={oglas.id || idx} className="d-flex justify-content-between align-items-center p-3 mb-2 bg-success bg-opacity-10 border border-success border-opacity-25 rounded shadow-sm">
+                                                
+                                                {/* Levo: Naslov, Bodovi i Poruka */}
+                                                <div className="d-flex flex-column" style={{ flex: '1' }}>
+                                                    <div className="d-flex align-items-center mb-1">
+                                                        <h6 className="fw-bold text-success mb-0 me-2">{oglas.naslov}</h6>
+                                                        <span className="badge bg-warning text-dark py-1" style={{ fontSize: '0.7rem' }} title="Tvoj skor za ovaj oglas">
+                                                            Bodovi: {oglas.bodovi || oglas.ukupniBodovi || 'N/A'}
+                                                        </span>
+                                                    </div>
+                                                    <small className="text-success text-opacity-75" style={{ fontSize: '0.75rem' }}>Savršeno se uklapa u tvoj profil!</small>
                                                 </div>
-                                                <p className="text-muted small mb-3">Savršeno se uklapa u tvoj profil!</p>
-                                                <button className="btn btn-sm btn-success w-100 fw-bold">Prijavi se odmah</button>
+
+                                                {/* Desno: Dugme */}
+                                                <div className="text-end ms-2">
+                                                    <button className="btn btn-sm btn-success fw-bold px-3">Prijavi se</button>
+                                                </div>
+
                                             </div>
-                                        </div>
-                                    ))
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         </div>

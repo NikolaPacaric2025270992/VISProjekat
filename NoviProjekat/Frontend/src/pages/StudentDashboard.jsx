@@ -195,6 +195,18 @@ function StudentDashboard() {
         }
     };
 
+    // Dodaj ovo pre return (...)
+    const odrediStatusPoklapanja = (bodovi) => {
+        const skor = parseFloat(bodovi) || 0;
+        if (skor >= 300) {
+            return { tekst: "Savršeno se uklapa u tvoj profil!", textColor: "text-success", bgColor: "bg-success", ikonica: "🔥", btnColor: "btn-success" };
+        } else if (skor >= 150) {
+            return { tekst: "Dobar kandidat (Delimično poklapanje)", textColor: "text-primary", bgColor: "bg-primary", ikonica: "⭐", btnColor: "btn-primary" };
+        } else {
+            return { tekst: "Nedostaju neke veštine, ali vredi pokušati", textColor: "text-warning text-dark", bgColor: "bg-warning", ikonica: "📈", btnColor: "btn-warning" };
+        }
+    };
+
     if (!student) return <div className="text-center mt-5">Učitavanje...</div>;
 
     return (
@@ -446,27 +458,37 @@ function StudentDashboard() {
                                     </div>
                                 ) : (
                                     <div className="d-flex flex-column">
-                                        {preporuceniOglasi.map((oglas, idx) => (
-                                            <div key={oglas.id || idx} className="d-flex justify-content-between align-items-center p-3 mb-2 bg-success bg-opacity-10 border border-success border-opacity-25 rounded shadow-sm">
-                                                
-                                                {/* Levo: Naslov, Bodovi i Poruka */}
-                                                <div className="d-flex flex-column" style={{ flex: '1' }}>
-                                                    <div className="d-flex align-items-center mb-1">
-                                                        <h6 className="fw-bold text-success mb-0 me-2">{oglas.naslov}</h6>
-                                                        <span className="badge bg-warning text-dark py-1" style={{ fontSize: '0.7rem' }} title="Tvoj skor za ovaj oglas">
-                                                            Bodovi: {oglas.bodovi || oglas.ukupniBodovi || 'N/A'}
-                                                        </span>
+                                        {preporuceniOglasi.map((oglas, idx) => {
+                                            // 1. Izvučemo bodove
+                                            const bodovi = oglas.bodovi || oglas.ukupniBodovi || 0;
+                                            // 2. Pošaljemo bodove u funkciju da dobijemo dizajn
+                                            const status = odrediStatusPoklapanja(bodovi);
+
+                                            return (
+                                                <div key={oglas.id || idx} className={`d-flex justify-content-between align-items-center p-3 mb-2 ${status.bgColor} bg-opacity-10 border ${status.borderColor} border-opacity-25 rounded shadow-sm`}>
+                                                    
+                                                    {/* Levo: Naslov, Bodovi i Poruka */}
+                                                    <div className="d-flex flex-column" style={{ flex: '1' }}>
+                                                        <div className="d-flex align-items-center mb-1">
+                                                            <h6 className={`fw-bold ${status.textColor} mb-0 me-2`}>{oglas.naslov}</h6>
+                                                            <span className="badge bg-dark text-white py-1" style={{ fontSize: '0.7rem' }} title="Tvoj skor za ovaj oglas">
+                                                                Bodovi: {bodovi}
+                                                            </span>
+                                                        </div>
+                                                        {/* OVDE SADA IDE DINAMIČKI TEKST UMESTO HARDKODOVANOG */}
+                                                        <small className={`${status.textColor} fw-bold text-opacity-75`} style={{ fontSize: '0.75rem' }}>
+                                                            {status.ikonica} {status.tekst}
+                                                        </small>
                                                     </div>
-                                                    <small className="text-success text-opacity-75" style={{ fontSize: '0.75rem' }}>Savršeno se uklapa u tvoj profil!</small>
-                                                </div>
 
-                                                {/* Desno: Dugme */}
-                                                <div className="text-end ms-2">
-                                                    <button className="btn btn-sm btn-success fw-bold px-3">Prijavi se</button>
-                                                </div>
+                                                    {/* Desno: Dugme (boja se menja u zavisnosti od statusa) */}
+                                                    <div className="text-end ms-2">
+                                                        <button className={`btn btn-sm ${status.btnColor} fw-bold px-3`}>Prijavi se</button>
+                                                    </div>
 
-                                            </div>
-                                        ))}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>

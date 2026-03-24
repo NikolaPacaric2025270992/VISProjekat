@@ -221,6 +221,36 @@ function AgencijaDashboard() {
         }
     };
 
+    // 1. Funkcija koja vraća donje crte nazad u '@' i '.'
+    const formatirajEmail = (id) => {
+        if (!id) return "N/A";
+        // Ako već ima @ (iz ArangoDB), vrati ga kako jeste
+        if (id.includes('@')) return id; 
+
+        // Pretvara 'marko_student_rs' nazad u 'marko@student.rs'
+        const prviDeo = id.indexOf('_');
+        const zadnjiDeo = id.lastIndexOf('_');
+        
+        if (prviDeo !== -1 && zadnjiDeo !== -1 && prviDeo !== zadnjiDeo) {
+            return id.substring(0, prviDeo) + '@' + 
+                   id.substring(prviDeo + 1, zadnjiDeo) + '.' + 
+                   id.substring(zadnjiDeo + 1);
+        }
+        return id;
+    };
+
+    // 2. Funkcija koja određuje vizuelni status studenta na osnovu bodova
+    const odrediStatusKandidata = (bodovi) => {
+        const skor = parseFloat(bodovi) || 0;
+        if (skor >= 300) {
+            return { tekst: "Savršen kandidat", bojaBadga: "bg-success", ikonica: "🔥", bojaReda: "table-success border-success" };
+        } else if (skor >= 150) {
+            return { tekst: "Dobar kandidat", bojaBadga: "bg-primary", ikonica: "⭐", bojaReda: "" };
+        } else {
+            return { tekst: "Delimično poklapanje", bojaBadga: "bg-warning text-dark", ikonica: "📈", bojaReda: "table-light text-muted" };
+        }
+    };
+
     if (!agencija) return <div className="text-center mt-5">Učitavanje...</div>;
 
     return (
@@ -465,18 +495,41 @@ function AgencijaDashboard() {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {prikazanePreporuke.kandidati.map((stud, sIdx) => (
-                                                            <tr key={sIdx}>
-                                                                <td className="fw-bold">{stud.ime} {stud.prezime}</td>
-                                                                <td className="text-muted">{stud.id}</td>
-                                                                <td className="text-center">
-                                                                    <span className="badge bg-warning text-dark fs-5 py-2 px-3">{stud.bodovi || stud.ukupniBodovi}</span>
-                                                                </td>
-                                                                <td className="text-center">
-                                                                    <button className="btn btn-sm btn-success fw-bold">Kontaktiraj</button>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
+                                                        {prikazanePreporuke.kandidati.map((stud, sIdx) => {
+                                                            // Izvlačimo bodove i šaljemo u našu novu funkciju
+                                                            const bodovi = stud.bodovi || stud.ukupniBodovi || 0;
+                                                            const status = odrediStatusKandidata(bodovi);
+
+                                                            return (
+                                                                <tr key={sIdx} className={status.bojaReda}>
+                                                                    {/* Ime, Prezime i Pametni Tekst */}
+                                                                    <td className="py-3">
+                                                                        <span className="fw-bold fs-6 text-dark">
+                                                                            {status.ikonica} {stud.ime} {stud.prezime}
+                                                                        </span>
+                                                                        <br />
+                                                                        <small className="text-secondary fw-bold">{status.tekst}</small>
+                                                                    </td>
+                                                                    
+                                                                    {/* Formatiran Email */}
+                                                                    <td className="text-muted align-middle">
+                                                                        📧 {formatirajEmail(stud.id)}
+                                                                    </td>
+                                                                    
+                                                                    {/* Pametni bedž za bodove */}
+                                                                    <td className="text-center align-middle">
+                                                                        <span className={`badge ${status.bojaBadga} fs-6 py-2 px-3 shadow-sm`}>
+                                                                            {bodovi} bodova
+                                                                        </span>
+                                                                    </td>
+                                                                    
+                                                                    {/* Akcija */}
+                                                                    <td className="text-center align-middle">
+                                                                        <button className="btn btn-sm btn-dark fw-bold px-3">Kontaktiraj</button>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
                                                     </tbody>
                                                 </table>
                                             </div>

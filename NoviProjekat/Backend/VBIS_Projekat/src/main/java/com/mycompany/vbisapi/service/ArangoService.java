@@ -329,27 +329,23 @@ public class ArangoService {
     
     public List<Predmet> sviPredmeti() {
         String query = "FOR p IN predmeti " +
-                       "  LET v = DOCUMENT('vestine', p.vestinaId) " +
-                       "  LET nivoEnum = (p.nivo == 'MASTER' ? 'NAPREDNI' : (p.ects >= 8 ? 'SREDNJI' : 'POCETNI')) " +
+                       // NOVO: Tražimo veštinu po atributu 'id', a ne po internom '_key'
+                       "  LET v = FIRST(FOR vest IN vestine FILTER vest.id == p.vestina.id RETURN vest) " +
                        "  RETURN { " +
                        "    id: p.id, " +
-                       "    nazivPredmeta: p.naziv, " +
+                       "    nazivPredmeta: p.nazivPredmeta, " +
                        "    ects: p.ects, " +
-                       "    nivoKojiNudi: nivoEnum, " +
+                       "    nivoKojiNudi: p.nivoKojiNudi, " +
                        "    vestina: v, " +
                        "    predavacId: p.predavacId " +
                        "  }";
         try {
-            // Koristimo ArangoCursor sa tvojom Predmet.class
             com.arangodb.ArangoCursor<Predmet> cursor = arangoDB.db(dbName).query(query, Predmet.class, null, null);
             List<Predmet> rezultati = cursor.asListRemaining();
-
             System.out.println("Arango: Uspesno povuceno " + rezultati.size() + " predmeta sa mapiranim nivoima.");
             return rezultati;
-
         } catch (Exception e) {
             System.err.println("Greška pri dohvatanju i mapiranju predmeta: " + e.getMessage());
-            // Štampamo stack trace da vidimo tačno gde Jackson puca ako dođe do greške
             e.printStackTrace(); 
             return java.util.Collections.emptyList();
         }

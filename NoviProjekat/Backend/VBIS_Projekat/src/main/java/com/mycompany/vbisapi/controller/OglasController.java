@@ -81,13 +81,7 @@ public class OglasController {
             // 2. Čuvanje u bazu (i Arango i Fuseki)
             int brojSacuvanih = 0;
             for (Oglas o : noviOglasi) {
-                
-                // KLJUČNO: Pregazimo agencijaId iz fajla stvarnim ID-jem ulogovane agencije
                 o.setAgencijaId(agencijaId);
-                
-                // (Opciono) Ako želiš da budeš 100% siguran da ID oglasa neće napraviti konflikt, 
-                // možeš ovde dodati i generisanje jedinstvenog ID-ja:
-                // o.setId("oglas_" + System.currentTimeMillis() + "_" + brojSacuvanih);
                 
                 oglasService.postaviOglas(o);
                 brojSacuvanih++;

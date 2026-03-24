@@ -38,17 +38,36 @@ public class FusekiService {
             "SELECT ?studentID ?ime ?prezime (SUM(?score) AS ?ukupniBodovi) WHERE { " +
             "  :" + oglasId + " :imaZahtev ?zahtev . " +
             "  ?zahtev :odnosiSeNaVestinu ?vestina ; :zahtevaNivo ?nivoOglasa ; :imaPrioritet ?prioritet . " +
-            "  ?polaganje :imaStudenta ?studentID ; :imaPredmet ?predmet ; :imaOcenu ?ocena . " +
-            "  ?predmet :prenosiVestinu ?vestina ; :nudiNivo ?nivoStudenta . " +
-            "  ?studentID :imaIme ?ime ; :imaPrezime ?prezime ; :traziZaposlenje true . " +
             
-            // 1. Pretvaramo Nivo studenta u bodove (40, 60, 80)
-            "  BIND(IF(?nivoStudenta = :Napredni, 80, IF(?nivoStudenta = :Srednji, 60, 40)) AS ?nivoBodovi) " +
+            // Nalazimo sve studente koji traže posao
+            "  ?studentID rdf:type :Student ; :imaIme ?ime ; :imaPrezime ?prezime ; :traziZaposlenje true . " +
             
-            // 2. Bodovi su ISKLJUČIVO (Ocena * 2) + Nivo studenta
-            "  BIND((?ocena * 2) + ?nivoBodovi AS ?score) " +
+            // OPTIONAL: Proveravamo da li student ima položen predmet za ovu veštinu
+            "  OPTIONAL { " +
+            "    ?polaganje :imaStudenta ?studentID ; :imaPredmet ?predmet ; :imaOcenu ?ocena . " +
+            "    ?predmet :prenosiVestinu ?vestina ; :nudiNivo ?nivoStudenta . " +
+            "  } " +
             
-            "} GROUP BY ?studentID ?ime ?prezime ORDER BY DESC(?ukupniBodovi) " +
+            // 1. Pretvaramo tekstualne nivoe u brojeve (1, 2, 3)
+            "  BIND(IF(?nivoOglasa = :Pocetni, 1, IF(?nivoOglasa = :Srednji, 2, 3)) AS ?nivoOglasaNum) " +
+            "  BIND(IF(BOUND(?nivoStudenta), IF(?nivoStudenta = :Pocetni, 1, IF(?nivoStudenta = :Srednji, 2, 3)), 0) AS ?nivoStudentaNum) " +
+            
+            // 2. Računamo razliku u nivoima
+            "  BIND(?nivoStudentaNum - ?nivoOglasaNum AS ?razlika) " +
+            
+            // 3. Određujemo Faktor Poklapanja (1.2, 1.0, 0.5, 0.2)
+            "  BIND(IF(!BOUND(?ocena), 0.0, IF(?razlika >= 1, 1.2, IF(?razlika = 0, 1.0, IF(?razlika = -1, 0.5, 0.2)))) AS ?faktor) " +
+            
+            // 4. Multiplikator Prioriteta (1, 2, 3)
+            "  BIND(IF(?prioritet = :Nizak, 1, IF(?prioritet = :Srednji, 2, 3)) AS ?prioritetNum) " +
+            
+            // 5. Finalna formula za Ovu Veštinu
+            "  BIND(IF(BOUND(?ocena), (?ocena * 10) * ?faktor * ?prioritetNum, 0) AS ?score) " +
+            
+            "} GROUP BY ?studentID ?ime ?prezime " +
+            // Izbacujemo one koji imaju 0 bodova (ne ispunjavaju apsolutno ništa)
+            "HAVING (SUM(?score) > 0) " +
+            "ORDER BY DESC(?ukupniBodovi) " +
             "LIMIT " + poStranici + " OFFSET " + offset;
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(FUSEKI_QUERY_URL, sparqlQuery)) {
@@ -62,6 +81,8 @@ public class FusekiService {
                     soln.get("ukupniBodovi").asLiteral().getDouble()
                 ));
             }
+        } catch (Exception e) {
+            System.err.println("Greska pri rangiranju studenata: " + e.getMessage());
         }
         return lista;
     }
@@ -69,27 +90,41 @@ public class FusekiService {
     public List<PreporuceniOglas> getPreporukeZaStudenta(String studentEmail, int stranica, int poStranici) {
         String studentID = studentEmail.replace("@", "_").replace(".", "_");
         List<PreporuceniOglas> preporuke = new ArrayList<>();
-
         int offset = (stranica - 1) * poStranici;
 
         String sparqlQuery = MY_PREFIX + RDF_PREFIX +
-            "SELECT ?oglasID ?naslov (SUM(?score) AS ?ukupniBodovi) (MAX(?priNum) AS ?maxPrioritet) WHERE { " +
+            "SELECT ?oglasID ?naslov (SUM(?score) AS ?ukupniBodovi) WHERE { " +
+            
+            // Prolazimo kroz sve aktivne oglase u bazi
             "  ?oglasID rdf:type :Oglas ; :imaNaziv ?naslov ; :imaZahtev ?zahtev . " +
             "  ?zahtev :odnosiSeNaVestinu ?vestina ; :zahtevaNivo ?nivoOglasa ; :imaPrioritet ?prioritet . " +
-            "  ?polaganje :imaStudenta :" + studentID + " ; :imaPredmet ?predmet ; :imaOcenu ?ocena . " +
-            "  ?predmet :prenosiVestinu ?vestina ; :nudiNivo ?nivoStudenta . " +
             
-            // 1. Pretvaramo Nivo studenta u bodove (40, 60, 80)
-            "  BIND(IF(?nivoStudenta = :Napredni, 80, IF(?nivoStudenta = :Srednji, 60, 40)) AS ?nivoBodovi) " +
+            // OPTIONAL: Gledamo da li naš specifični student ima ovu veštinu
+            "  OPTIONAL { " +
+            "    ?polaganje :imaStudenta :" + studentID + " ; :imaPredmet ?predmet ; :imaOcenu ?ocena . " +
+            "    ?predmet :prenosiVestinu ?vestina ; :nudiNivo ?nivoStudenta . " +
+            "  } " +
             
-            // 2. Bodovi su ISKLJUČIVO (Ocena * 2) + Nivo studenta
-            "  BIND((?ocena * 2) + ?nivoBodovi AS ?score) " +
+            // 1. Pretvaramo tekstualne nivoe u brojeve (1, 2, 3)
+            "  BIND(IF(?nivoOglasa = :Pocetni, 1, IF(?nivoOglasa = :Srednji, 2, 3)) AS ?nivoOglasaNum) " +
+            "  BIND(IF(BOUND(?nivoStudenta), IF(?nivoStudenta = :Pocetni, 1, IF(?nivoStudenta = :Srednji, 2, 3)), 0) AS ?nivoStudentaNum) " +
             
-            // 3. Pretvaramo Prioritet oglasa u broj isključivo radi sortiranja (Visok=2, Srednji=1, Nizak=0)
-            "  BIND(IF(?prioritet = :Visok, 2, IF(?prioritet = :Srednji, 1, 0)) AS ?priNum) " +
+            // 2. Računamo razliku u nivoima
+            "  BIND(?nivoStudentaNum - ?nivoOglasaNum AS ?razlika) " +
             
-            // Grupišemo i sortiramo: PRVO po prioritetu, ONDA po bodovima
-            "} GROUP BY ?oglasID ?naslov ORDER BY DESC(?maxPrioritet) DESC(?ukupniBodovi) " +
+            // 3. Određujemo Faktor Poklapanja (1.2, 1.0, 0.5, 0.2)
+            "  BIND(IF(!BOUND(?ocena), 0.0, IF(?razlika >= 1, 1.2, IF(?razlika = 0, 1.0, IF(?razlika = -1, 0.5, 0.2)))) AS ?faktor) " +
+            
+            // 4. Multiplikator Prioriteta (Nizak = x1, Visok = x3)
+            "  BIND(IF(?prioritet = :Visok, 3, 1) AS ?prioritetNum) " +
+            
+            // 5. Finalna formula za Ovu Veštinu
+            "  BIND(IF(BOUND(?ocena), (?ocena * 10) * ?faktor * ?prioritetNum, 0) AS ?score) " +
+            
+            "} GROUP BY ?oglasID ?naslov " +
+            // Prikazujemo samo oglase gde student ima bar jednu traženu veštinu
+            "HAVING (SUM(?score) > 0) " +
+            "ORDER BY DESC(?ukupniBodovi) " +
             "LIMIT " + poStranici + " OFFSET " + offset;
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(FUSEKI_QUERY_URL, sparqlQuery)) {
@@ -103,7 +138,7 @@ public class FusekiService {
                 ));
             }
         } catch (Exception e) {
-            System.err.println("Greska pri preporuci: " + e.getMessage());
+            System.err.println("Greska pri preporuci oglasa: " + e.getMessage());
         }
         return preporuke;
     }

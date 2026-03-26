@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lista Polaganja",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "string" },
+      "studentId": { "type": "string" },
+      "predmetId": { "type": "string" },
+      "ocena": { 
+        "type": "integer",
+        "minimum": 5,
+        "maximum": 10
+      }
+    },
+    "required": ["studentId", "predmetId", "ocena"]
+  }
+}

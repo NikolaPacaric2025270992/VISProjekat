@@ -1,0 +1,32 @@
+[
+  {
+    "_key": "nikola_test_com",
+    "id": "nikola_test_com",
+    "ime": "Nikola",
+    "prezime": "Pacarić",
+    "email": "nikola@test.com",
+    "lozinka": "1111",
+    "nivoStudija": "OSNOVNE",
+    "traziZaposlenje": true
+  },
+  {
+    "_key": "marko_student_rs",
+    "id": "marko_student_rs",
+    "ime": "Marko",
+    "prezime": "Marković",
+    "email": "marko@student.rs",
+    "lozinka": "1111",
+    "nivoStudija": "OSNOVNE",
+    "traziZaposlenje": true
+  },
+  {
+    "_key": "jelena_master_com",
+    "id": "jelena_master_com",
+    "ime": "Jelena",
+    "prezime": "Nikolić",
+    "email": "jelena@master.com",
+    "lozinka": "1111",
+    "nivoStudija": "MASTER",
+    "traziZaposlenje": false
+  }
+]

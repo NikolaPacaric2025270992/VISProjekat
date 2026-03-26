@@ -1,0 +1,20 @@
+[
+  {
+    "id": "placeholder",
+    "studentId": "placeholder_student",
+    "predmetId": "predmet_it_uvod_java",
+    "ocena": 8
+  },
+  {
+    "id": "placeholder",
+    "studentId": "placeholder_student",
+    "predmetId": "predmet_it_arhitektura_racunara",
+    "ocena": 10
+  },
+  {
+    "id": "placeholder",
+    "studentId": "placeholder_student",
+    "predmetId": "predmet_it_mreze",
+    "ocena": 7
+  }
+]

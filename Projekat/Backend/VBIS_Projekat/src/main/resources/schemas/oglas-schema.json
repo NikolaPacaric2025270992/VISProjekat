@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Oglas",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "string" },
+      "naslov": { "type": "string" },
+      "opis": { "type": "string" },
+      "plata": { "type": "number", "minimum": 0 },
+      "agencijaId": { "type": "string" },
+      "zahtevaneVestine": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "vestina": {
+              "type": "object",
+              "properties": { "id": { "type": "string" }, "naziv": { "type": "string" } },
+              "required": ["id"]
+            },
+            "nivo": { "type": "string", "enum": ["POCETNI", "SREDNJI", "NAPREDNI"] },
+            "prioritet": { "type": "string", "enum": ["NIZAK", "SREDNJI", "VISOK"] }
+          },
+          "required": ["vestina", "nivo", "prioritet"]
+        }
+      }
+    },
+    "required": ["id", "naslov", "plata", "agencijaId"]
+  }
+}

@@ -1,0 +1,1 @@
+model.rdf je exportovan model koji ce biti koriscen za aplikaciju

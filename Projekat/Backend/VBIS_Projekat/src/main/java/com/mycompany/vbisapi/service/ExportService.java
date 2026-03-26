@@ -25,8 +25,6 @@ public class ExportService {
     // Izvoz u XML formatu
     public byte[] eksportujUXml(List<?> podaci) throws Exception {
         XmlMapper xmlMapper = new XmlMapper();
-        // Jackson XML po defaultu liste pretvara u <ArrayList><item> što se savršeno
-        // poklapa sa tvojom logikom i može se parsirati nazad.
         return xmlMapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(podaci);
     }
 }

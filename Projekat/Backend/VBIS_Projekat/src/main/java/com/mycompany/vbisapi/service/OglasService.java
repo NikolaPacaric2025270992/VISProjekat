@@ -41,7 +41,6 @@ public class OglasService {
         return arango.nadjiOglasePoAgenciji(agencijaId);
     }
     
-    // NOVO: Preuzimanje svih oglasa iz baze
     public List<Oglas> dobijSveOglase() {
         return arango.sviOglasi(); 
     }

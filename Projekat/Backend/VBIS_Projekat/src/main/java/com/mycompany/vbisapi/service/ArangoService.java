@@ -71,10 +71,10 @@ public class ArangoService {
             BaseDocument doc = new BaseDocument();
         
             String generisanId = s.getEmail().replace("@", "_").replace(".", "_");
-            s.setId(generisanId); // Setujemo ga i u Java objektu
+            s.setId(generisanId);
             
             doc.setKey(generisanId);
-            doc.addAttribute("id", generisanId); // <--- OVO SPAŠAVA STVAR
+            doc.addAttribute("id", generisanId);
             doc.addAttribute("ime", s.getIme());
             doc.addAttribute("prezime", s.getPrezime());
             doc.addAttribute("email", s.getEmail());
@@ -94,10 +94,10 @@ public class ArangoService {
             BaseDocument doc = new BaseDocument();
         
             String generisanId = a.getEmail().replace("@", "_").replace(".", "_");
-            a.setId(generisanId); // Osiguravamo da i Java objekat zna svoj ID
+            a.setId(generisanId);
             
             doc.setKey(generisanId);
-            doc.addAttribute("id", generisanId); // <--- OVO SPAŠAVA STVAR
+            doc.addAttribute("id", generisanId);
             doc.addAttribute("nazivAgencije", a.getNazivAgencije());
             doc.addAttribute("email", a.getEmail());
             doc.addAttribute("lozinka", a.getLozinka()); 
@@ -170,15 +170,9 @@ public class ArangoService {
             doc.addAttribute("plata", o.getPlata());
             doc.addAttribute("agencijaId", o.getAgencijaId());
 
-            // VIŠE NE STAVLJAMO nivo i prioritet na vrh dokumenta jer su oni 
-            // sada specifični za svaku veštinu unutar liste zahteva.
-
             if (o.getZahtevaneVestine() != null) {
-                // ArangoDB drajver će automatski List<OglasVestina> pretvoriti u 
-                // JSON niz objekata, gde svaki sadrži veštinu, nivo i prioritet.
                 doc.addAttribute("zahtevaneVestine", o.getZahtevaneVestine());
             }
-
             arangoDB.db(dbName).collection("oglasi").insertDocument(doc);
             System.out.println("Oglas '" + o.getNaslov() + "' uspješno sačuvan u ArangoDB sa kompleksnim zahtjevima!");
         } catch (Exception e){
@@ -210,7 +204,6 @@ public class ArangoService {
         ArangoCursor<Student> cursor = arangoDB.db(dbName).query(query, Student.class, bindVars, null);
         Student ulogovan = cursor.hasNext() ? cursor.next() : null; 
         
-        // DODATO: Ručno vraćamo ID!
         if (ulogovan != null) {
             ulogovan.setId(email.replace("@", "_").replace(".", "_"));
         }
@@ -227,7 +220,6 @@ public class ArangoService {
         ArangoCursor<Agencija> cursor = arangoDB.db(dbName).query(query, Agencija.class, bindVars, null);
         Agencija ulogovana = cursor.hasNext() ? cursor.next() : null;
         
-        // DODATO: Ručno vraćamo ID!
         if (ulogovana != null) {
             ulogovana.setId(email.replace("@", "_").replace(".", "_"));
         }
@@ -302,7 +294,6 @@ public class ArangoService {
     }
     
     public java.util.List<Oglas> nadjiOglasePoAgenciji(String agencijaId) {
-        // MERGE automatski dodaje polje 'id' u JSON rezultat koristeći postojeći '_key'
         String query = "FOR o IN oglasi FILTER o.agencijaId == @agencijaId RETURN MERGE(o, { id: o._key })";
         Map<String, Object> bindVars = new HashMap<>();
         bindVars.put("agencijaId", agencijaId);
@@ -329,7 +320,6 @@ public class ArangoService {
     
     public List<Predmet> sviPredmeti() {
         String query = "FOR p IN predmeti " +
-                       // NOVO: Tražimo veštinu po atributu 'id', a ne po internom '_key'
                        "  LET v = FIRST(FOR vest IN vestine FILTER vest.id == p.vestina.id RETURN vest) " +
                        "  RETURN { " +
                        "    id: p.id, " +
@@ -362,7 +352,6 @@ public class ArangoService {
         }
     }
     
-    // 1. Dohvatanje svih studenata
     public List<Student> sviStudenti() {
         String query = "FOR s IN studenti RETURN s";
         try {
@@ -374,7 +363,6 @@ public class ArangoService {
         }
     }
     
-    // NOVO: Dohvatanje samo onih studenata koji traže zaposlenje (za AgencijaDashboard)
     public List<Student> nadjiAktivneStudente() {
         String query = "FOR s IN studenti FILTER s.traziZaposlenje == true RETURN MERGE(s, { id: s._key })";
         try {
@@ -386,7 +374,6 @@ public class ArangoService {
         }
     }
 
-    // 2. Dohvatanje svih agencija
     public List<Agencija> sveAgencije() {
         String query = "FOR a IN agencije RETURN a";
         try {
@@ -398,7 +385,6 @@ public class ArangoService {
         }
     }
 
-    // 3. Dohvatanje svih polaganja (ispita)
     public List<Polaganje> svaPolaganja() {
         String query = "FOR p IN polaganja RETURN p";
         try {
@@ -410,7 +396,6 @@ public class ArangoService {
         }
     }
 
-    // 4. Dohvatanje svih oglasa
     public List<Oglas> sviOglasi() {
         String query = "FOR o IN oglasi RETURN MERGE(o, { id: o._key })";
         try {

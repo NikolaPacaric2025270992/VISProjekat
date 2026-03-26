@@ -50,29 +50,23 @@ public class ImportService {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(fajl.getInputStream());
 
-        // 1. Učitavanje JSON šeme
         InputStream schemaStream = new ClassPathResource("schemas/oglas-schema.json").getInputStream();
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
         com.networknt.schema.JsonSchema schema = factory.getSchema(schemaStream);
 
-        // 2. Validacija
         Set<ValidationMessage> errors = schema.validate(jsonNode);
         if (!errors.isEmpty()) {
             throw new Exception("JSON Validacija nije uspela: " + errors.toString());
         }
-
-        // 3. Parsiranje u List<Oglas>
         return mapper.readValue(fajl.getInputStream(), new TypeReference<List<Oglas>>(){});
     }
     
     private List<Oglas> obradiXml(MultipartFile fajl) throws Exception {
-        // 1. Validacija XML-a spram XSD šeme
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema schema = factory.newSchema(new ClassPathResource("schemas/oglas-schema.xsd").getFile());
         Validator validator = schema.newValidator();
         validator.validate(new StreamSource(fajl.getInputStream()));
 
-        // 2. Parsiranje
         XmlMapper xmlMapper = new XmlMapper();
         return xmlMapper.readValue(fajl.getInputStream(), new TypeReference<List<Oglas>>(){});
     }
@@ -93,29 +87,23 @@ public class ImportService {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode jsonNode = mapper.readTree(fajl.getInputStream());
 
-        // 1. Učitavanje JSON šeme za polaganja
         InputStream schemaStream = new ClassPathResource("schemas/polaganje-schema.json").getInputStream();
         JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V7);
         com.networknt.schema.JsonSchema schema = factory.getSchema(schemaStream);
 
-        // 2. Validacija
         Set<ValidationMessage> errors = schema.validate(jsonNode);
         if (!errors.isEmpty()) {
             throw new Exception("JSON Validacija polaganja nije uspela: " + errors.toString());
         }
-
-        // 3. Parsiranje
         return mapper.readValue(fajl.getInputStream(), new TypeReference<List<Polaganje>>(){});
     }
     
     private List<Polaganje> obradiPolaganjaXml(MultipartFile fajl) throws Exception {
-        // 1. Validacija XML-a spram XSD šeme
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Schema schema = factory.newSchema(new ClassPathResource("schemas/polaganje-schema.xsd").getFile());
         Validator validator = schema.newValidator();
         validator.validate(new StreamSource(fajl.getInputStream()));
 
-        // 2. Parsiranje
         XmlMapper xmlMapper = new XmlMapper();
         return xmlMapper.readValue(fajl.getInputStream(), new TypeReference<List<Polaganje>>(){});
     }

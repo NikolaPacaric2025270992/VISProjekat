@@ -40,8 +40,6 @@ public class VestinaController {
     @GetMapping
     public List<Vestina> preuzmiSveVestine() {
         try {
-            // Pretpostavljam da imaš metodu u servisu koja vraća sve veštine.
-            // Ako se metoda zove drugačije, samo prilagodi naziv!
             return vestinaService.sveVestine(); 
         } catch (Exception e) {
             return null;

@@ -60,16 +60,13 @@ public class DatabaseSeederService {
         
         System.out.println("Pronadjeni podaci u ArangoDB. Zapocinjem upis u Fuseki...");
         
-        // Prvo infrastruktura
         sveVestine.forEach(v -> fuseki.sacuvajVestinuURDF(v));
         sviPredavaci.forEach(pr -> fuseki.sacuvajPredavacaURDF(pr));
         sviPredmeti.forEach(p -> fuseki.sacuvajPredmetURDF(p));
         
-        // Zatim korisnici
         sviStudenti.forEach(s -> fuseki.sacuvajStudentaURDF(s));
         sveAgencije.forEach(a -> fuseki.sacuvajAgencijuURDF(a));
         
-        // I na kraju dinamički podaci (Ispiti i Oglasi)
         svaPolaganja.forEach(pol -> fuseki.sacuvajPolaganjeURDF(pol));
         sviOglasi.forEach(o -> fuseki.sacuvajOglasURDF(o));
         

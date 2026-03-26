@@ -52,9 +52,9 @@ public class StudentController {
     public ResponseEntity<?> loginStudent(@RequestBody LoginDTO loginPodaci) {
         Student s = studentService.login(loginPodaci.getEmail(), loginPodaci.getLozinka());
         if (s != null) {
-            return ResponseEntity.ok(s); // Vraća kompletnog studenta (200 OK)
+            return ResponseEntity.ok(s); 
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!"); // 401 Error
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!");
         }
     }
 
@@ -62,7 +62,7 @@ public class StudentController {
     public ResponseEntity<?> azurirajStudenta(@RequestBody Student s) {
         try {
             studentService.azurirajStudenta(s);
-            return ResponseEntity.ok(s); // Vraćamo ažuriranog studenta nazad
+            return ResponseEntity.ok(s);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri ažuriranju.");
         }
@@ -81,10 +81,7 @@ public class StudentController {
     @DeleteMapping("/obrisi/{id}")
     public ResponseEntity<?> obrisiStudenta(@PathVariable String id) {
         try {
-            // 1. Brišemo iz ArangoDB
-            studentService.obrisiStudenta(id); // Pretpostavljam da ćeš u StudentService pozvati arango.obrisiStudenta(id)
-            
-            // 2. Brišemo iz Fusekija
+            studentService.obrisiStudenta(id);
             fusekiService.obrisiKorisnikaIzRDF(id);
             
             return ResponseEntity.ok("Nalog studenta je uspešno obrisan iz svih baza.");
@@ -93,30 +90,21 @@ public class StudentController {
         }
     }
     
-    // IZMENJENO: Promenjena putanja i dodat parametar studentId
     @PostMapping("/import-polaganja")
     public ResponseEntity<?> importPolaganja(
             @RequestParam("fajl") MultipartFile fajl,
             @RequestParam("studentId") String studentId) {
-        
         try {
-            // 1. Validacija i parsiranje (ImportService ostaje isti)
             List<Polaganje> novaPolaganja = importService.obradiFajlSaPolaganjima(fajl);
-            
-            // 2. Čuvanje u bazu (Arango i Fuseki)
+
             int brojSacuvanih = 0;
             for (Polaganje p : novaPolaganja) {
-                
-                // KLJUČNO: Pregazimo studentId iz fajla onim ko je zaista kliknuo "Import"
                 p.setStudentId(studentId);
-                
-                // Generišemo jedinstven ID za polaganje da bismo izbegli kolizije
                 p.setId("polaganje_" + System.currentTimeMillis() + "_" + brojSacuvanih);
                 
                 polaganjeService.dodajPolaganje(p);
                 brojSacuvanih++;
             }
-            
             return ResponseEntity.ok("Uspešno validirano i sačuvano " + brojSacuvanih + " položenih ispita.");
         } catch (Exception e) {
             e.printStackTrace();
@@ -133,7 +121,6 @@ public class StudentController {
         return fusekiService.getPreporukeZaStudenta(email, stranica, poStranici);
     }
     
-    // NOVO: Ruta za dohvatanje baze talenata (svih studenata koji traže posao)
     @GetMapping("/aktivni")
     public ResponseEntity<List<Student>> getAktivniStudenti() {
         try {
@@ -145,7 +132,6 @@ public class StudentController {
         }
     }
     
-    // 1. EXPORT: Svi aktivni studenti (Za Agenciju)
     @GetMapping("/aktivni/export")
     public ResponseEntity<byte[]> exportAktivniStudenti(@RequestParam(defaultValue = "json") String format) {
         try {
@@ -162,11 +148,10 @@ public class StudentController {
         }
     }
 
-    // 2. EXPORT: Preporučeni oglasi za studenta (Za Studenta)
     @GetMapping("/{email}/preporuke/export")
     public ResponseEntity<byte[]> exportPreporukeStudenta(@PathVariable String email, @RequestParam(defaultValue = "json") String format) {
         try {
-            List<PreporuceniOglas> preporuke = fusekiService.getPreporukeZaStudenta(email, 1, 100); // 100 da bi povukao sve bitne
+            List<PreporuceniOglas> preporuke = fusekiService.getPreporukeZaStudenta(email, 1, 100);
             byte[] fajl = format.equalsIgnoreCase("xml") ? exportService.eksportujUXml(preporuke) : exportService.eksportujUJson(preporuke);
             String ekstenzija = format.equalsIgnoreCase("xml") ? ".xml" : ".json";
             

@@ -49,8 +49,8 @@ public class AgencijaController {
     public ResponseEntity<?> azurirajAgenciju(@RequestBody Agencija a) {
         try {
             agencijaService.azurirajAgenciju(a);
-            fusekiService.obrisiKorisnikaIzRDF(a.getId()); // Brišemo stari čvor
-            fusekiService.sacuvajAgencijuURDF(a);          // Upisujemo novi
+            fusekiService.obrisiKorisnikaIzRDF(a.getId());
+            fusekiService.sacuvajAgencijuURDF(a);
             return ResponseEntity.ok(a); 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri ažuriranju.");
@@ -71,8 +71,8 @@ public class AgencijaController {
     @DeleteMapping("/obrisi/{id}")
     public ResponseEntity<?> obrisiAgenciju(@PathVariable String id) {
         try {
-            agencijaService.obrisiAgenciju(id); // Briše iz Aranga
-            fusekiService.obrisiKorisnikaIzRDF(id); // Briše iz Fusekija
+            agencijaService.obrisiAgenciju(id); 
+            fusekiService.obrisiKorisnikaIzRDF(id);
             return ResponseEntity.ok("Nalog agencije uspešno obrisan.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri brisanju.");

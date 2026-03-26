@@ -60,7 +60,6 @@ public class OglasController {
     @DeleteMapping("/obrisi/{id}")
     public ResponseEntity<?> obrisiOglas(@PathVariable String id) {
         try {
-            // Kontroler samo delegira posao Servisu!
             oglasService.obrisiOglas(id); 
             return ResponseEntity.ok("Oglas uspešno obrisan.");
         } catch (Exception e) {
@@ -68,17 +67,14 @@ public class OglasController {
         }
     }
     
-    // IZMENJENO: Putanja je sada /import, a metoda prima i agencijaId
     @PostMapping("/import")
     public ResponseEntity<?> importOglasa(
             @RequestParam("fajl") MultipartFile fajl,
             @RequestParam("agencijaId") String agencijaId) {
         
         try {
-            // 1. Validacija i parsiranje (ImportService ostaje isti)
             List<Oglas> noviOglasi = importService.obradiFajlSaOglasima(fajl);
             
-            // 2. Čuvanje u bazu (i Arango i Fuseki)
             int brojSacuvanih = 0;
             for (Oglas o : noviOglasi) {
                 o.setAgencijaId(agencijaId);
@@ -108,7 +104,6 @@ public class OglasController {
         return oglasService.nadjiOglaseAgencije(agencijaId);
     }
     
-    // NOVO: Ruta za dohvatanje apsolutno svih oglasa (za tržište rada kod Studenta)
     @GetMapping("/svi")
     public ResponseEntity<List<Oglas>> getSviOglasi() {
         try {
@@ -120,7 +115,6 @@ public class OglasController {
         }
     }
     
-    // 3. EXPORT: Svi oglasi sa tržišta (Za Studenta)
     @GetMapping("/svi/export")
     public ResponseEntity<byte[]> exportSviOglasi(@RequestParam(defaultValue = "json") String format) {
         try {
@@ -137,7 +131,6 @@ public class OglasController {
         }
     }
 
-    // 4. EXPORT: Idealni kandidati za konkretan oglas (Za Agenciju)
     @GetMapping("/{id}/rang-lista/export")
     public ResponseEntity<byte[]> exportRangListaOglasa(@PathVariable String id, @RequestParam(defaultValue = "json") String format) {
         try {

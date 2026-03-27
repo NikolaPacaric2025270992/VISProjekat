@@ -320,15 +320,9 @@ public class ArangoService {
     
     public List<Predmet> sviPredmeti() {
         String query = "FOR p IN predmeti " +
-                       "  LET v = FIRST(FOR vest IN vestine FILTER vest.id == p.vestina.id RETURN vest) " +
-                       "  RETURN { " +
-                       "    id: p.id, " +
-                       "    nazivPredmeta: p.nazivPredmeta, " +
-                       "    ects: p.ects, " +
-                       "    nivoKojiNudi: p.nivoKojiNudi, " +
-                       "    vestina: v, " +
-                       "    predavacId: p.predavacId " +
-                       "  }";
+                       "  LET vId = HAS(p, 'vestinaId') ? p.vestinaId : p.vestina.id " +
+                       "  LET v = FIRST(FOR vest IN vestine FILTER vest.id == vId OR vest._key == vId RETURN vest) " +
+                       "  RETURN MERGE(p, { id: p._key, vestina: v != null ? v : p.vestina })";
         try {
             com.arangodb.ArangoCursor<Predmet> cursor = arangoDB.db(dbName).query(query, Predmet.class, null, null);
             List<Predmet> rezultati = cursor.asListRemaining();

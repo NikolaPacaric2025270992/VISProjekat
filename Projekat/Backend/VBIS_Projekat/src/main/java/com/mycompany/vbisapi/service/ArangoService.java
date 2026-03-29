@@ -294,7 +294,7 @@ public class ArangoService {
     }
     
     public java.util.List<Oglas> nadjiOglasePoAgenciji(String agencijaId) {
-        String query = "FOR o IN oglasi FILTER o.agencijaId == @agencijaId RETURN MERGE(o, { id: o._key })";
+        String query = "FOR o IN oglasi FILTER o.agencijaId == @agencijaId RETURN MERGE(o, { id: HAS(o, 'id') ? o.id : o._key })";
         Map<String, Object> bindVars = new HashMap<>();
         bindVars.put("agencijaId", agencijaId);
 
@@ -322,7 +322,7 @@ public class ArangoService {
         String query = "FOR p IN predmeti " +
                        "  LET vId = HAS(p, 'vestinaId') ? p.vestinaId : p.vestina.id " +
                        "  LET v = FIRST(FOR vest IN vestine FILTER vest.id == vId OR vest._key == vId RETURN vest) " +
-                       "  RETURN MERGE(p, { id: p._key, vestina: v != null ? v : p.vestina })";
+                       "  RETURN MERGE(p, { id: HAS(p, 'id') ? p.id : p._key, vestina: v != null ? v : p.vestina })";
         try {
             com.arangodb.ArangoCursor<Predmet> cursor = arangoDB.db(dbName).query(query, Predmet.class, null, null);
             List<Predmet> rezultati = cursor.asListRemaining();
@@ -358,7 +358,7 @@ public class ArangoService {
     }
     
     public List<Student> nadjiAktivneStudente() {
-        String query = "FOR s IN studenti FILTER s.traziZaposlenje == true RETURN MERGE(s, { id: s._key })";
+        String query = "FOR s IN studenti FILTER s.traziZaposlenje == true RETURN MERGE(s, { id: HAS(s, 'id') ? s.id : s._key })";
         try {
             com.arangodb.ArangoCursor<Student> cursor = arangoDB.db(dbName).query(query, Student.class, null, null);
             return cursor.asListRemaining();
@@ -391,7 +391,7 @@ public class ArangoService {
     }
 
     public List<Oglas> sviOglasi() {
-        String query = "FOR o IN oglasi RETURN MERGE(o, { id: o._key })";
+        String query = "FOR o IN oglasi RETURN MERGE(o, { id: HAS(o, 'id') ? o.id : o._key })";
         try {
             com.arangodb.ArangoCursor<Oglas> cursor = arangoDB.db(dbName).query(query, Oglas.class, null, null);
             return cursor.asListRemaining();
@@ -399,7 +399,7 @@ public class ArangoService {
             System.err.println("Greška pri dohvatanju oglasa: " + e.getMessage());
             return java.util.Collections.emptyList();
         }
-    }
+    }   
     
     public List<Polaganje> nadjiPolaganjaStudenta(String studentId) {
         String query = "FOR p IN polaganja FILTER p.studentId == @studentId RETURN p";

@@ -115,6 +115,7 @@ public class ArangoService {
         try {
             BaseDocument doc = new BaseDocument();
             doc.setKey(p.getId());
+            doc.addAttribute("id", p.getId());
             doc.addAttribute("naziv", p.getNazivPredmeta());
             doc.addAttribute("ects", p.getEcts());
             doc.addAttribute("nivo", p.getNivoKojiNudi().toString());
@@ -132,6 +133,7 @@ public class ArangoService {
         try {
             BaseDocument doc = new BaseDocument();
             doc.setKey(pr.getId());
+            doc.addAttribute("id", pr.getId());
             doc.addAttribute("ime", pr.getIme());
             doc.addAttribute("prezime", pr.getPrezime());
             doc.addAttribute("titula", pr.getTitula());
@@ -185,6 +187,7 @@ public class ArangoService {
             BaseDocument doc = new BaseDocument();
 
             doc.setKey(v.getId()); 
+            doc.addAttribute("id", v.getId());
             doc.addAttribute("naziv", v.getNaziv());
 
             arangoDB.db(dbName).collection("vestine").insertDocument(doc);

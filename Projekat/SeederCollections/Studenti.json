@@ -1,0 +1,5 @@
+[
+    {"_key":"marko_test_rs","_id":"studenti/marko_test_rs","_rev":"_lSLX8Qq---","ime":"Marko","prezime":"Markovic","lozinka":"1111","nivoStudija":"Osnovne","traziZaposlenje":true,"id":"marko_test_rs","email":"marko@test.rs"},
+    {"_key":"nemanja_test_rs","_id":"studenti/nemanja_test_rs","_rev":"_lSLzJta---","ime":"Nemanja","prezime":"Nemanjic","lozinka":"1111","nivoStudija":"Osnovne","traziZaposlenje":true,"id":"nemanja_test_rs","email":"nemanja@test.rs"},
+    {"_key":"petar_test_rs","_id":"studenti/petar_test_rs","_rev":"_lSLzkr2---","ime":"Petar","prezime":"Petrovic","lozinka":"1111","nivoStudija":"Master","traziZaposlenje":true,"id":"petar_test_rs","email":"petar@test.rs"}
+]

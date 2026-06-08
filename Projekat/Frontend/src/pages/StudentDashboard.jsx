@@ -40,6 +40,7 @@ function StudentDashboard() {
         const podaciStudenta = JSON.parse(ulogovanKorisnik);
         setStudent(podaciStudenta);
 
+        // 1. Učitavanje predmeta i polaganja (ova dva mogu ostati nezavisna)
         axios.get('http://localhost:8080/api/predmeti')
             .then(res => setPredmeti(res.data))
             .catch(err => console.error("Greška:", err));
@@ -48,13 +49,18 @@ function StudentDashboard() {
             .then(res => setPolaganja(res.data))
             .catch(err => console.error("Greška pri učitavanju polaganja:", err));
 
-        axios.get(`http://localhost:8080/api/studenti/${podaciStudenta.email}/preporuke`)
-            .then(res => setPreporuceniOglasi(res.data))
-            .catch(err => console.error("Greška pri učitavanju preporuka:", err));
-
-        axios.get('http://localhost:8080/api/oglasi/svi')
-            .then(res => setSviOglasi(res.data))
-            .catch(err => console.error("Greška pri učitavanju svih oglasa:", err));
+        // 2. KLJUČNI DEO: Sinhronizovano učitavanje PREPORUKA i SVIH OGLASA
+        Promise.all([
+            axios.get(`http://localhost:8080/api/studenti/${podaciStudenta.email}/preporuke`),
+            axios.get('http://localhost:8080/api/oglasi/svi')
+        ]).then(([preporukeRes, sviOglasiRes]) => {
+            // Prvo setujemo sve oglase, kako bi ih React imao u memoriji
+            setSviOglasi(sviOglasiRes.data);
+            // Zatim setujemo preporuke, što okida ponovno crtanje (render)
+            setPreporuceniOglasi(preporukeRes.data);
+        }).catch(err => {
+            console.error("Greška pri sinhronizovanom učitavanju oglasa:", err);
+        });
 
     }, [navigate]);
 
@@ -196,14 +202,43 @@ function StudentDashboard() {
     };
 
     // Dodaj ovo pre return (...)
-    const odrediStatusPoklapanja = (bodovi) => {
+    const odrediStatusPoklapanja = (bodovi, brojVestina) => {
         const skor = parseFloat(bodovi) || 0;
-        if (skor >= 300) {
-            return { tekst: "Savršeno se uklapa u tvoj profil!", textColor: "text-success", bgColor: "bg-success", ikonica: "🔥", btnColor: "btn-success" };
-        } else if (skor >= 150) {
-            return { tekst: "Dobar kandidat (Delimično poklapanje)", textColor: "text-primary", bgColor: "bg-primary", ikonica: "⭐", btnColor: "btn-primary" };
+        
+        // Množilac je broj veština iz oglasa
+        const mnozilac = brojVestina > 0 ? brojVestina : 1; 
+
+        // Dinamički pragovi
+        const pragSavrsen = 300 * mnozilac;
+        const pragDobar = 150 * mnozilac;
+
+        if (skor >= pragSavrsen) {
+            return { 
+                tekst: "Savršeno se uklapa u tvoj profil!", 
+                textColor: "text-success", 
+                bgColor: "bg-success", 
+                borderColor: "border-success", // Dodato za okvir
+                ikonica: "🔥", 
+                btnColor: "btn-success" 
+            };
+        } else if (skor >= pragDobar) {
+            return { 
+                tekst: "Dobar kandidat (Delimično poklapanje)", 
+                textColor: "text-primary", 
+                bgColor: "bg-primary", 
+                borderColor: "border-primary", // Dodato za okvir
+                ikonica: "⭐", 
+                btnColor: "btn-primary" 
+            };
         } else {
-            return { tekst: "Nedostaju neke veštine, ali vredi pokušati", textColor: "text-warning text-dark", bgColor: "bg-warning", ikonica: "📈", btnColor: "btn-warning" };
+            return { 
+                tekst: "Nedostaju neke veštine, ali vredi pokušati", 
+                textColor: "text-warning", // Sklonjen text-dark da bi se uklopilo u opšti stil
+                bgColor: "bg-warning text-dark", 
+                borderColor: "border-warning", // Dodato za okvir
+                ikonica: "📈", 
+                btnColor: "btn-warning text-dark" 
+            };
         }
     };
 
@@ -461,8 +496,26 @@ function StudentDashboard() {
                                         {preporuceniOglasi.map((oglas, idx) => {
                                             // 1. Izvučemo bodove
                                             const bodovi = oglas.bodovi || oglas.ukupniBodovi || 0;
-                                            // 2. Pošaljemo bodove u funkciju da dobijemo dizajn
-                                            const status = odrediStatusPoklapanja(bodovi);
+                                            
+                                            // 2. ULTRA-SIGURNO TRAŽENJE OGLASA
+                                            const idPreporuke = String(oglas.oglasID || oglas.id || "");
+                                            
+                                            const punOglasIzBaze = sviOglasi.find(o => {
+                                                // Hvatamo sve moguće nazive ID-ja koje baza može da vrati (Arango često koristi _key)
+                                                const idOglasa = String(o.oglasID || o.id || o._key || "");
+                                                
+                                                // KRITIČNO: Ako je string prazan, .includes("") vraća true za PRVI oglas na listi!
+                                                // Zato moramo da prekinemo pretragu ako ID nije validan (kraći od 5 karaktera).
+                                                if (idOglasa.length < 5 || idPreporuke.length < 5) return false;
+                                                
+                                                return idPreporuke.includes(idOglasa) || idOglasa.includes(idPreporuke);
+                                            });
+
+                                            // Ako uspešno nađe pun oglas, uzima njegov broj veština (Marko ima 2). Ako ne, fallback je 1.
+                                            const brojTrazenihVestina = punOglasIzBaze?.zahtevaneVestine?.length || oglas?.zahtevaneVestine?.length || 1;
+
+                                            // 3. Šaljemo prave podatke u funkciju
+                                            const status = odrediStatusPoklapanja(bodovi, brojTrazenihVestina);
 
                                             return (
                                                 <div key={oglas.id || idx} className={`d-flex justify-content-between align-items-center p-3 mb-2 ${status.bgColor} bg-opacity-10 border ${status.borderColor} border-opacity-25 rounded shadow-sm`}>
@@ -472,10 +525,9 @@ function StudentDashboard() {
                                                         <div className="d-flex align-items-center mb-1">
                                                             <h6 className={`fw-bold ${status.textColor} mb-0 me-2`}>{oglas.naslov}</h6>
                                                             <span className="badge bg-dark text-white py-1" style={{ fontSize: '0.7rem' }} title="Tvoj skor za ovaj oglas">
-                                                                Bodovi: {bodovi}
+                                                                Bodovi: {bodovi.toFixed(1)}
                                                             </span>
                                                         </div>
-                                                        {/* OVDE SADA IDE DINAMIČKI TEKST UMESTO HARDKODOVANOG */}
                                                         <small className={`${status.textColor} fw-bold text-opacity-75`} style={{ fontSize: '0.75rem' }}>
                                                             {status.ikonica} {status.tekst}
                                                         </small>

@@ -1,0 +1,12 @@
+[
+  { "_key": "p_milan_jovanovic", "id": "p_milan_jovanovic", "ime": "Milan", "prezime": "Jovanović", "titula": "Prof. dr" },
+  { "_key": "p_marko_petrovic", "id": "p_marko_petrovic", "ime": "Marko", "prezime": "Petrović", "titula": "Doc. dr" },
+  { "_key": "p_dejan_ilic", "id": "p_dejan_ilic", "ime": "Dejan", "prezime": "Ilić", "titula": "Prof. dr" },
+  { "_key": "p_ivana_savic", "id": "p_ivana_savic", "ime": "Ivana", "prezime": "Savić", "titula": "Prof. dr" },
+  { "_key": "p_ana_nikolic", "id": "p_ana_nikolic", "ime": "Ana", "prezime": "Nikolić", "titula": "Doc. dr" },
+  { "_key": "p_stefan_markovic", "id": "p_stefan_markovic", "ime": "Stefan", "prezime": "Marković", "titula": "Prof. dr" },
+  { "_key": "p_nikola_krstic", "id": "p_nikola_krstic", "ime": "Nikola", "prezime": "Krstić", "titula": "Doc. dr" },
+  { "_key": "p_jelena_djordjevic", "id": "p_jelena_djordjevic", "ime": "Jelena", "prezime": "Đorđević", "titula": "Doc. dr" },
+  { "_key": "p_dragan_maric", "id": "p_dragan_maric", "ime": "Dragan", "prezime": "Marić", "titula": "Prof. dr" },
+  { "_key": "p_milica_todorovic", "id": "p_milica_todorovic", "ime": "Milica", "prezime": "Todorović", "titula": "Doc. dr" }
+]

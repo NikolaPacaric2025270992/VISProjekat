@@ -1,0 +1,21 @@
+[
+  { "_key": "v_java", "id": "v_java", "naziv": "Java" },
+  { "_key": "v_python", "id": "v_python", "naziv": "Python" },
+  { "_key": "v_csharp", "id": "v_csharp", "naziv": "C#" },
+  { "_key": "v_javascript", "id": "v_javascript", "naziv": "JavaScript" },
+  { "_key": "v_reactjs", "id": "v_reactjs", "naziv": "React.js" },
+  { "_key": "v_nodejs", "id": "v_nodejs", "naziv": "Node.js" },
+  { "_key": "v_mysql", "id": "v_mysql", "naziv": "MySQL" },
+  { "_key": "v_mongodb", "id": "v_mongodb", "naziv": "MongoDB" },
+  { "_key": "v_docker", "id": "v_docker", "naziv": "Docker" },
+  { "_key": "v_aws", "id": "v_aws", "naziv": "AWS" },
+  { "_key": "v_git", "id": "v_git", "naziv": "Git" },
+  { "_key": "v_scrum", "id": "v_scrum", "naziv": "Scrum" },
+  { "_key": "v_seo", "id": "v_seo", "naziv": "SEO" },
+  { "_key": "v_google_ads", "id": "v_google_ads", "naziv": "Google Ads" },
+  { "_key": "v_excel", "id": "v_excel", "naziv": "Excel" },
+  { "_key": "v_powerbi", "id": "v_powerbi", "naziv": "Power BI" },
+  { "_key": "v_linux", "id": "v_linux", "naziv": "Linux" },
+  { "_key": "v_cybersec", "id": "v_cybersec", "naziv": "Cybersecurity" },
+  { "_key": "v_machine_learning", "id": "v_machine_learning", "naziv": "Machine Learning" }
+]

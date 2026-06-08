@@ -239,12 +239,20 @@ function AgencijaDashboard() {
         return id;
     };
 
-    // 2. Funkcija koja određuje vizuelni status studenta na osnovu bodova
-    const odrediStatusKandidata = (bodovi) => {
+    // 2. Funkcija koja određuje vizuelni status studenta na osnovu bodova i broja veština
+    const odrediStatusKandidata = (bodovi, brojVestina) => {
         const skor = parseFloat(bodovi) || 0;
-        if (skor >= 300) {
+        
+        // Množilac je broj veština. Ako oglas nema veština (što ne bi trebalo), stavljamo 1.
+        const mnozilac = brojVestina > 0 ? brojVestina : 1; 
+        
+        // Dinamički pragovi bazirani na SPARQL matematici
+        const pragSavrsen = 300 * mnozilac;
+        const pragDobar = 150 * mnozilac;
+
+        if (skor >= pragSavrsen) {
             return { tekst: "Savršen kandidat", bojaBadga: "bg-success", ikonica: "🔥", bojaReda: "table-success border-success" };
-        } else if (skor >= 150) {
+        } else if (skor >= pragDobar) {
             return { tekst: "Dobar kandidat", bojaBadga: "bg-primary", ikonica: "⭐", bojaReda: "" };
         } else {
             return { tekst: "Delimično poklapanje", bojaBadga: "bg-warning text-dark", ikonica: "📈", bojaReda: "table-light text-muted" };
@@ -496,13 +504,18 @@ function AgencijaDashboard() {
                                                     </thead>
                                                     <tbody>
                                                         {prikazanePreporuke.kandidati.map((stud, sIdx) => {
-                                                            // Izvlačimo bodove i šaljemo u našu novu funkciju
+                                                            // 1. Izvlačimo bodove
                                                             const bodovi = stud.bodovi || stud.ukupniBodovi || 0;
-                                                            const status = odrediStatusKandidata(bodovi);
+                                                            
+                                                            // 2. NOVO: Izvlačimo broj traženih veština iz trenutno otvorenog oglasa
+                                                            const brojTrazenihVestina = prikazanePreporuke.oglas?.zahtevaneVestine?.length || 1;
+                                                            
+                                                            // 3. NOVO: Proslijeđujemo brojTrazenihVestina u funkciju
+                                                            const status = odrediStatusKandidata(bodovi, brojTrazenihVestina);
 
                                                             return (
                                                                 <tr key={sIdx} className={status.bojaReda}>
-                                                                    {/* Ime, Prezime i Pametni Tekst */}
+                                                                    {/* Ostatak reda (td elementi) ostaje POTPUNO ISTI */}
                                                                     <td className="py-3">
                                                                         <span className="fw-bold fs-6 text-dark">
                                                                             {status.ikonica} {stud.ime} {stud.prezime}
@@ -511,19 +524,16 @@ function AgencijaDashboard() {
                                                                         <small className="text-secondary fw-bold">{status.tekst}</small>
                                                                     </td>
                                                                     
-                                                                    {/* Formatiran Email */}
                                                                     <td className="text-muted align-middle">
                                                                         📧 {formatirajEmail(stud.id)}
                                                                     </td>
                                                                     
-                                                                    {/* Pametni bedž za bodove */}
                                                                     <td className="text-center align-middle">
                                                                         <span className={`badge ${status.bojaBadga} fs-6 py-2 px-3 shadow-sm`}>
-                                                                            {bodovi} bodova
+                                                                            {bodovi.toFixed(1)} bodova {/* Dodato toFixed(1) da lepše izgleda ako ima decimala */}
                                                                         </span>
                                                                     </td>
                                                                     
-                                                                    {/* Akcija */}
                                                                     <td className="text-center align-middle">
                                                                         <button className="btn btn-sm btn-dark fw-bold px-3">Kontaktiraj</button>
                                                                     </td>

@@ -1,0 +1,4 @@
+[
+    {"_key":"tech_test_rs","_id":"agencije/tech_test_rs","_rev":"_lSLYmcS---","lozinka":"1111","pib":"11112222","lokacija":"Srbija","id":"tech_test_rs","nazivAgencije":"Agencija1","email":"tech@test.rs"},
+    {"_key":"hire_test_rs","_id":"agencije/hire_test_rs","_rev":"_lSL0XDi---","lozinka":"1111","pib":"22221111","lokacija":"Beograd","id":"hire_test_rs","nazivAgencije":"Agencija2","email":"hire@test.rs"}
+]

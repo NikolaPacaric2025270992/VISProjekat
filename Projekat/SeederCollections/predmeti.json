@@ -1,0 +1,48 @@
+[
+  { "_key": "pr_osnove_prog", "id": "pr_osnove_prog", "nazivPredmeta": "Osnove programiranja", "ects": 8, "nivoKojiNudi": "POCETNI", "vestinaId": "v_python", "predavacId": "p_milan_jovanovic" },
+  { "_key": "pr_oop1", "id": "pr_oop1", "nazivPredmeta": "Objektno orijentisano programiranje 1", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_java", "predavacId": "p_milan_jovanovic" },
+  { "_key": "pr_oop2", "id": "pr_oop2", "nazivPredmeta": "Objektno orijentisano programiranje 2", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_csharp", "predavacId": "p_milan_jovanovic" },
+  { "_key": "pr_strukture_podataka", "id": "pr_strukture_podataka", "nazivPredmeta": "Strukture podataka i algoritmi", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_java", "predavacId": "p_marko_petrovic" },
+  
+  { "_key": "pr_org_arh_rac", "id": "pr_org_arh_rac", "nazivPredmeta": "Organizacija i arhitektura računara", "ects": 8, "nivoKojiNudi": "POCETNI", "vestinaId": "v_linux", "predavacId": "p_marko_petrovic" },
+  { "_key": "pr_operativni_sistemi", "id": "pr_operativni_sistemi", "nazivPredmeta": "Operativni sistemi", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_linux", "predavacId": "p_marko_petrovic" },
+  { "_key": "pr_racunarske_mreze", "id": "pr_racunarske_mreze", "nazivPredmeta": "Računarske mreže", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_linux", "predavacId": "p_dejan_ilic" },
+
+  { "_key": "pr_specifikacija_softvera", "id": "pr_specifikacija_softvera", "nazivPredmeta": "Specifikacija i modelovanje softvera", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_git", "predavacId": "p_ivana_savic" },
+  { "_key": "pr_testiranje_softvera", "id": "pr_testiranje_softvera", "nazivPredmeta": "Testiranje softvera i obezbeđenje kvaliteta", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_java", "predavacId": "p_ivana_savic" },
+  { "_key": "pr_metodologija_razvoja", "id": "pr_metodologija_razvoja", "nazivPredmeta": "Metodologija razvoja softvera", "ects": 8, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_scrum", "predavacId": "p_ivana_savic" },
+  { "_key": "pr_napredne_arhitekture", "id": "pr_napredne_arhitekture", "nazivPredmeta": "Napredne softverske arhitekture", "ects": 8, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_docker", "predavacId": "p_ivana_savic" },
+
+  { "_key": "pr_baze_podataka", "id": "pr_baze_podataka", "nazivPredmeta": "Baze podataka", "ects": 8, "nivoKojiNudi": "POCETNI", "vestinaId": "v_mysql", "predavacId": "p_ana_nikolic" },
+  { "_key": "pr_nosql", "id": "pr_nosql", "nazivPredmeta": "Nerelaciona (NoSQL) skladišta podataka", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_mongodb", "predavacId": "p_ana_nikolic" },
+  { "_key": "pr_veliki_podaci", "id": "pr_veliki_podaci", "nazivPredmeta": "Rukovanje velikim podacima", "ects": 6, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_python", "predavacId": "p_ana_nikolic" },
+  { "_key": "pr_napredne_baze", "id": "pr_napredne_baze", "nazivPredmeta": "Napredne baze podataka", "ects": 6, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_mysql", "predavacId": "p_ana_nikolic" },
+
+  { "_key": "pr_klijentske_veb", "id": "pr_klijentske_veb", "nazivPredmeta": "Klijentske Veb aplikacije", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_javascript", "predavacId": "p_dejan_ilic" },
+  { "_key": "pr_veb_is", "id": "pr_veb_is", "nazivPredmeta": "Veb informacioni sistemi", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_reactjs", "predavacId": "p_dejan_ilic" },
+  { "_key": "pr_cloud_computing", "id": "pr_cloud_computing", "nazivPredmeta": "Distribuirani računarski servisi (Cloud)", "ects": 8, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_aws", "predavacId": "p_dejan_ilic" },
+
+  { "_key": "pr_ve_inteligencija", "id": "pr_ve_inteligencija", "nazivPredmeta": "Veštačka inteligencija", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_python", "predavacId": "p_stefan_markovic" },
+  { "_key": "pr_masinsko_ucenje", "id": "pr_masinsko_ucenje", "nazivPredmeta": "Mašinsko učenje", "ects": 8, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_machine_learning", "predavacId": "p_stefan_markovic" },
+  { "_key": "pr_duboke_mreze", "id": "pr_duboke_mreze", "nazivPredmeta": "Duboke neuronske mreže", "ects": 7, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_machine_learning", "predavacId": "p_stefan_markovic" },
+  { "_key": "pr_obrada_jezika", "id": "pr_obrada_jezika", "nazivPredmeta": "Obrada prirodnog jezika", "ects": 7, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_python", "predavacId": "p_stefan_markovic" },
+
+  { "_key": "pr_zastita_is", "id": "pr_zastita_is", "nazivPredmeta": "Zaštita informacionih sistema", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_cybersec", "predavacId": "p_nikola_krstic" },
+  { "_key": "pr_sajber_bezb", "id": "pr_sajber_bezb", "nazivPredmeta": "Tehnologije i sistemi sajber bezbednosti", "ects": 7, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_cybersec", "predavacId": "p_nikola_krstic" },
+  { "_key": "pr_blockchain", "id": "pr_blockchain", "nazivPredmeta": "Programiranje Block chain-a", "ects": 6, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_java", "predavacId": "p_nikola_krstic" },
+
+  { "_key": "pr_menadzment", "id": "pr_menadzment", "nazivPredmeta": "Menadžment", "ects": 6, "nivoKojiNudi": "POCETNI", "vestinaId": "v_scrum", "predavacId": "p_jelena_djordjevic" },
+  { "_key": "pr_upravljanje_hr", "id": "pr_upravljanje_hr", "nazivPredmeta": "Upravljanje ljudskim resursima", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_scrum", "predavacId": "p_jelena_djordjevic" },
+  { "_key": "pr_upravljanje_soft_projektom", "id": "pr_upravljanje_soft_projektom", "nazivPredmeta": "Upravljanje softverskim projektom", "ects": 6, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_scrum", "predavacId": "p_jelena_djordjevic" },
+  { "_key": "pr_org_it_funkcije", "id": "pr_org_it_funkcije", "nazivPredmeta": "Organizacija IT funkcije i upravljanje IT resursima", "ects": 6, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_aws", "predavacId": "p_jelena_djordjevic" },
+
+  { "_key": "pr_osnovi_ekonomije", "id": "pr_osnovi_ekonomije", "nazivPredmeta": "Osnovi ekonomije", "ects": 8, "nivoKojiNudi": "POCETNI", "vestinaId": "v_excel", "predavacId": "p_jelena_djordjevic" },
+  { "_key": "pr_racunovodstvo", "id": "pr_racunovodstvo", "nazivPredmeta": "Računovodstvo", "ects": 8, "nivoKojiNudi": "POCETNI", "vestinaId": "v_excel", "predavacId": "p_jelena_djordjevic" },
+  { "_key": "pr_poslovne_finansije", "id": "pr_poslovne_finansije", "nazivPredmeta": "Poslovne finansije", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_powerbi", "predavacId": "p_jelena_djordjevic" },
+  { "_key": "pr_revizija", "id": "pr_revizija", "nazivPredmeta": "Principi i metodologija eksterne, interne i forenzičke revizije", "ects": 8, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_powerbi", "predavacId": "p_jelena_djordjevic" },
+
+  { "_key": "pr_marketing", "id": "pr_marketing", "nazivPredmeta": "Marketing", "ects": 8, "nivoKojiNudi": "POCETNI", "vestinaId": "v_google_ads", "predavacId": "p_ana_nikolic" },
+  { "_key": "pr_eposlovanje", "id": "pr_eposlovanje", "nazivPredmeta": "Elektronsko poslovanje", "ects": 6, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_seo", "predavacId": "p_ana_nikolic" },
+  { "_key": "pr_internet_marketing", "id": "pr_internet_marketing", "nazivPredmeta": "Internet marketing", "ects": 8, "nivoKojiNudi": "SREDNJI", "vestinaId": "v_google_ads", "predavacId": "p_ana_nikolic" },
+  { "_key": "pr_digitalni_marketing_master", "id": "pr_digitalni_marketing_master", "nazivPredmeta": "Marketing i trgovina u digitalnom okruženju", "ects": 8, "nivoKojiNudi": "NAPREDNI", "vestinaId": "v_seo", "predavacId": "p_ana_nikolic" }
+]

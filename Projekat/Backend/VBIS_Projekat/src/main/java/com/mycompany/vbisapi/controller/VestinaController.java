@@ -8,6 +8,8 @@ import com.mycompany.vbisapi.model.Vestina;
 import com.mycompany.vbisapi.service.VestinaService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,21 +30,21 @@ public class VestinaController {
     private VestinaService vestinaService;
     
     @PostMapping("/dodaj")
-    public String dodajVestinu(@RequestBody Vestina v){
+    public ResponseEntity<?> dodajVestinu(@RequestBody Vestina v){
         try {
             vestinaService.dodajVestinu(v);
-            return "Uspeh: Vestina '" + v.getNaziv() + "' je uspesno dodata u sistem!";
+            return ResponseEntity.ok("Uspeh: Vestina '" + v.getNaziv() + "' je uspesno dodata u sistem!");
         }catch (Exception e){
-            return "Greska pri dodavanju vestine: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greska pri dodavanju vestine: " + e.getMessage());
         }
     }
     
     @GetMapping
-    public List<Vestina> preuzmiSveVestine() {
+    public ResponseEntity<List<Vestina>> preuzmiSveVestine() {
         try {
-            return vestinaService.sveVestine(); 
+            return ResponseEntity.ok(vestinaService.sveVestine());
         } catch (Exception e) {
-            return null;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

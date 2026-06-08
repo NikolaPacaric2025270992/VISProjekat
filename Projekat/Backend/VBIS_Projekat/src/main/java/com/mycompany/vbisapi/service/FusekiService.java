@@ -65,7 +65,7 @@ public class FusekiService {
                         soln.get("ukupniBodovi").asLiteral().getDouble()));
             }
         } catch (Exception e) {
-            System.err.println("Greska pri rangiranju studenata: " + e.getMessage());
+            throw fusekiGreska("Rangiranje studenata za oglas " + oglasId, e);
         }
         return lista;
     }
@@ -105,7 +105,7 @@ public class FusekiService {
                         soln.get("ukupniBodovi").asLiteral().getDouble()));
             }
         } catch (Exception e) {
-            System.err.println("Greska pri preporuci oglasa: " + e.getMessage());
+            throw fusekiGreska("Preporuka oglasa za studenta " + studentEmail, e);
         }
         return preporuke;
     }
@@ -208,7 +208,7 @@ public class FusekiService {
             UpdateRequest request = UpdateFactory.create(sparql);
             UpdateExecutionFactory.createRemote(request, FUSEKI_UPDATE_URL).execute();
         } catch (Exception e) {
-            System.err.println("Greska u Fuseki komunikaciji: " + e.getMessage());
+            throw fusekiGreska("SPARQL update", e);
         }
     }
 
@@ -256,7 +256,11 @@ public class FusekiService {
                     .createRemote(request, FUSEKI_UPDATE_URL);
             processor.execute();
         } catch (Exception e) {
-            System.out.println("Greska pri ciscenju Fuseki baze: " + e.getMessage());
+            throw fusekiGreska("Čišćenje Fuseki baze", e);
         }
+    }
+
+    private RuntimeException fusekiGreska(String operacija, Exception e) {
+        return new IllegalStateException(operacija + " nije uspela u Fuseki servisu.", e);
     }
 }

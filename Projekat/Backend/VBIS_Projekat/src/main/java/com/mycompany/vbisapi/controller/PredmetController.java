@@ -9,6 +9,8 @@ import com.mycompany.vbisapi.service.ArangoService;
 import com.mycompany.vbisapi.service.PredmetService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,12 +40,12 @@ public class PredmetController {
     }
     
     @PostMapping("/dodaj")
-    public String dodajPredmet(@RequestBody Predmet p){
+    public ResponseEntity<?> dodajPredmet(@RequestBody Predmet p){
         try {
             predmetService.dodajPredmet(p);
-            return "Uspeh: Predmet '" + p.getNazivPredmeta() + "' je uspesno kreiran!";
+            return ResponseEntity.ok("Uspeh: Predmet '" + p.getNazivPredmeta() + "' je uspesno kreiran!");
         }catch (Exception e){
-            return "Greska pri kreiranju predmeta: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greska pri kreiranju predmeta: " + e.getMessage());
         }
     }
 }

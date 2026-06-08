@@ -40,7 +40,7 @@ public class ArangoService {
         try{
             inicijalizujSistem();
         } catch (Exception e){
-            System.err.println("Greska pri inicijalizaciji Arango servera: " + e.getMessage());
+            throw arangoGreska("Inicijalizacija ArangoDB sistema", e);
         }
         
     }
@@ -85,7 +85,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("studenti").insertDocument(doc);
             System.out.println("Student " + s.getIme() + " uspesno sacuvan u ArangoDB!");
         }catch(Exception e) {
-            System.err.println("Greška pri čuvanju studenta u Arango: " + e.getMessage());
+            throw arangoGreska("Čuvanje studenta " + s.getEmail(), e);
         }  
     }
     
@@ -107,7 +107,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("agencije").insertDocument(doc);
             System.out.println("Agencija " + a.getNazivAgencije() + " uspesno sacuvana u ArangoDB!");
         } catch (Exception e){
-            System.err.println("Greska pri čuvanju agencije u Arango: " + e.getMessage());
+            throw arangoGreska("Čuvanje agencije " + a.getEmail(), e);
         }
     }
     
@@ -125,7 +125,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("predmeti").insertDocument(doc);
             System.out.println("Predmet " + p.getNazivPredmeta() + " sačuvan u ArangoDB!");
         } catch (Exception e) {
-            System.err.println("Greska Arango Predmet: " + e.getMessage());
+            throw arangoGreska("Čuvanje predmeta " + p.getId(), e);
         }
     }
     
@@ -141,7 +141,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("predavaci").insertDocument(doc);
             System.out.println("Predavač sačuvan u ArangoDB!");
         } catch (Exception e) {
-            System.err.println("Greska Arango Predavač: " + e.getMessage());
+            throw arangoGreska("Čuvanje predavača " + pr.getId(), e);
         }
     }
     
@@ -158,7 +158,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("polaganja").insertDocument(doc);
             System.out.println("Polaganje " + pol.getId() + " uspesno sacuvano u ArtangoDB!");
         } catch (Exception e){
-            System.err.println("Greška pri čuvanju polaganja u Arango: " + e.getMessage());
+            throw arangoGreska("Čuvanje polaganja " + pol.getId(), e);
         }  
     }
     
@@ -178,7 +178,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("oglasi").insertDocument(doc);
             System.out.println("Oglas '" + o.getNaslov() + "' uspješno sačuvan u ArangoDB sa kompleksnim zahtjevima!");
         } catch (Exception e){
-            System.err.println("Greška pri čuvanju oglasa u Arango: " + e.getMessage());
+            throw arangoGreska("Čuvanje oglasa " + o.getId(), e);
         }
     }
     
@@ -193,7 +193,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("vestine").insertDocument(doc);
             System.out.println("Veština " + v.getNaziv() + " uspešno sačuvana u ArangoDB!");
         } catch (Exception e) {
-            System.err.println("Greška pri čuvanju veštine u Arango: " + e.getMessage());
+            throw arangoGreska("Čuvanje veštine " + v.getId(), e);
         }
     }
 
@@ -245,14 +245,14 @@ public class ArangoService {
             arangoDB.db(dbName).collection("studenti").updateDocument(key, doc);
             System.out.println("ArangoDB: Student " + s.getIme() + " ažuriran.");
         } catch (Exception e) {
-            System.err.println("Greška pri ažuriranju studenta: " + e.getMessage());
+            throw arangoGreska("Ažuriranje studenta " + s.getEmail(), e);
         }
     }
 
     public void azurirajAgenciju(Agencija a) {
         try {
             BaseDocument doc = new BaseDocument();
-            doc.addAttribute("naziv", a.getNazivAgencije());
+            doc.addAttribute("nazivAgencije", a.getNazivAgencije());
             doc.addAttribute("email", a.getEmail());
             doc.addAttribute("lozinka", a.getLozinka());
             doc.addAttribute("lokacija", a.getLokacija());
@@ -261,7 +261,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("agencije").updateDocument(a.getId(), doc);
             System.out.println("ArangoDB: Agencija " + a.getNazivAgencije() + " ažurirana.");
         } catch (Exception e) {
-            System.err.println("Greška pri ažuriranju agencije: " + e.getMessage());
+            throw arangoGreska("Ažuriranje agencije " + a.getId(), e);
         }
     }
     
@@ -271,7 +271,7 @@ public class ArangoService {
             arangoDB.db(dbName).collection("studenti").deleteDocument(id);
             System.out.println("ArangoDB: Student " + id + " je obrisan.");
         } catch (Exception e) {
-            System.err.println("Greška pri brisanju studenta iz Aranga: " + e.getMessage());
+            throw arangoGreska("Brisanje studenta " + id, e);
         }
     }
 
@@ -280,20 +280,20 @@ public class ArangoService {
             arangoDB.db(dbName).collection("agencije").deleteDocument(id);
             System.out.println("ArangoDB: Agencija " + id + " je obrisana.");
         } catch (Exception e) {
-            System.err.println("Greška pri brisanju agencije iz Aranga: " + e.getMessage());
+            throw arangoGreska("Brisanje agencije " + id, e);
         }
     }
     
     public void obrisiPolaganje(String id) {
         try {
             arangoDB.db(dbName).collection("polaganja").deleteDocument(id);
-        } catch (Exception e) { System.err.println("Arango greška: " + e.getMessage()); }
+        } catch (Exception e) { throw arangoGreska("Brisanje polaganja " + id, e); }
     }
 
     public void obrisiOglas(String id) {
         try {
             arangoDB.db(dbName).collection("oglasi").deleteDocument(id);
-        } catch (Exception e) { System.err.println("Arango greška: " + e.getMessage()); }
+        } catch (Exception e) { throw arangoGreska("Brisanje oglasa " + id, e); }
     }
     
     public java.util.List<Oglas> nadjiOglasePoAgenciji(String agencijaId) {
@@ -305,8 +305,7 @@ public class ArangoService {
             com.arangodb.ArangoCursor<Oglas> cursor = arangoDB.db(dbName).query(query, Oglas.class, bindVars, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri preuzimanju oglasa agencije: " + e.getMessage());
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Preuzimanje oglasa agencije " + agencijaId, e);
         }
     }
     
@@ -316,8 +315,7 @@ public class ArangoService {
             ArangoCursor<Vestina> cursor = arangoDB.db(dbName).query(query, Vestina.class, null, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri dohvatanju veština: " + e.getMessage());
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Dohvatanje veština", e);
         }
     }
     
@@ -332,9 +330,7 @@ public class ArangoService {
             System.out.println("Arango: Uspesno povuceno " + rezultati.size() + " predmeta sa mapiranim nivoima.");
             return rezultati;
         } catch (Exception e) {
-            System.err.println("Greška pri dohvatanju i mapiranju predmeta: " + e.getMessage());
-            e.printStackTrace(); 
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Dohvatanje i mapiranje predmeta", e);
         }
     }
 
@@ -344,8 +340,7 @@ public class ArangoService {
             ArangoCursor<Predavac> cursor = arangoDB.db(dbName).query(query, Predavac.class, null, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri dohvatanju predavača: " + e.getMessage());
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Dohvatanje predavača", e);
         }
     }
     
@@ -355,8 +350,7 @@ public class ArangoService {
             ArangoCursor<Student> cursor = arangoDB.db(dbName).query(query, Student.class, null, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri dohvatanju studenata: " + e.getMessage());
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Dohvatanje studenata", e);
         }
     }
     
@@ -366,8 +360,7 @@ public class ArangoService {
             com.arangodb.ArangoCursor<Student> cursor = arangoDB.db(dbName).query(query, Student.class, null, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri dohvatanju aktivnih studenata: " + e.getMessage());
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Dohvatanje aktivnih studenata", e);
         }
     }
 
@@ -377,8 +370,7 @@ public class ArangoService {
             ArangoCursor<Agencija> cursor = arangoDB.db(dbName).query(query, Agencija.class, null, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri dohvatanju agencija: " + e.getMessage());
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Dohvatanje agencija", e);
         }
     }
 
@@ -388,8 +380,7 @@ public class ArangoService {
             ArangoCursor<Polaganje> cursor = arangoDB.db(dbName).query(query, Polaganje.class, null, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri dohvatanju polaganja: " + e.getMessage());
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Dohvatanje polaganja", e);
         }
     }
 
@@ -399,8 +390,7 @@ public class ArangoService {
             com.arangodb.ArangoCursor<Oglas> cursor = arangoDB.db(dbName).query(query, Oglas.class, null, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri dohvatanju oglasa: " + e.getMessage());
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Dohvatanje oglasa", e);
         }
     }   
     
@@ -413,8 +403,11 @@ public class ArangoService {
             com.arangodb.ArangoCursor<Polaganje> cursor = arangoDB.db(dbName).query(query, Polaganje.class, bindVars, null);
             return cursor.asListRemaining();
         } catch (Exception e) {
-            System.err.println("Greška pri preuzimanju polaganja: " + e.getMessage());
-            return java.util.Collections.emptyList();
+            throw arangoGreska("Preuzimanje polaganja studenta " + studentId, e);
         }
+    }
+
+    private RuntimeException arangoGreska(String operacija, Exception e) {
+        return new IllegalStateException(operacija + " nije uspela u ArangoDB.", e);
     }
 }

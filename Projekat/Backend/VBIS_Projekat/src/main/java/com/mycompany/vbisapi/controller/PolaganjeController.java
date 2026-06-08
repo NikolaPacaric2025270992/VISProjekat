@@ -9,6 +9,7 @@ import com.mycompany.vbisapi.service.ArangoService;
 import com.mycompany.vbisapi.service.PolaganjeService;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,12 +36,12 @@ public class PolaganjeController {
     private ArangoService arangoService;
     
     @PostMapping("/dodaj")
-    public String dodajPolaganje(@RequestBody Polaganje p){
+    public ResponseEntity<?> dodajPolaganje(@RequestBody Polaganje p){
         try {
             polaganjeService.dodajPolaganje(p);
-            return "Uspeh: Polaganje za studenta " + p.getStudentId() + " je evidentirano!";
+            return ResponseEntity.ok("Uspeh: Polaganje za studenta " + p.getStudentId() + " je evidentirano!");
         } catch (Exception e){
-            return "Greska pri evidentiranju polaganja: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greska pri evidentiranju polaganja: " + e.getMessage());
         }
     }
     
@@ -55,7 +56,7 @@ public class PolaganjeController {
             polaganjeService.obrisiPolaganje(id);
             return ResponseEntity.ok("Polaganje uspešno obrisano iz sistema.");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Greška: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška: " + e.getMessage());
         }
     }
 }

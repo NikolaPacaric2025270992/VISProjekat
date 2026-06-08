@@ -47,13 +47,12 @@ public class OglasController {
     private ExportService exportService;
     
     @PostMapping("/postavi")
-    public String postavioglas(@RequestBody Oglas o){
-    try{
+    public ResponseEntity<?> postavioglas(@RequestBody Oglas o){
+        try{
             oglasService.postaviOglas(o);
-            return "Uspeh: Oglas '" + o.getNaslov() + "' je uspesno objavljen u oba sistema!";
+            return ResponseEntity.ok("Uspeh: Oglas '" + o.getNaslov() + "' je uspesno objavljen u oba sistema!");
         } catch (Exception e){
-            e.printStackTrace();
-            return "Greska pri postavljanju oglasa: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greska pri postavljanju oglasa: " + e.getMessage());
         }
     }
     
@@ -63,7 +62,7 @@ public class OglasController {
             oglasService.obrisiOglas(id); 
             return ResponseEntity.ok("Oglas uspešno obrisan.");
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Greška pri brisanju: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri brisanju: " + e.getMessage());
         }
     }
     
@@ -85,7 +84,6 @@ public class OglasController {
             
             return ResponseEntity.ok("Uspešno validirano i sačuvano " + brojSacuvanih + " oglasa.");
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Greška pri importu: " + e.getMessage());
         }
     }
@@ -110,7 +108,6 @@ public class OglasController {
             List<Oglas> sviOglasi = oglasService.dobijSveOglase();
             return ResponseEntity.ok(sviOglasi);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

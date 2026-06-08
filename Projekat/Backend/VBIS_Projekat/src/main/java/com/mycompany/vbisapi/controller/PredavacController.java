@@ -7,6 +7,8 @@ package com.mycompany.vbisapi.controller;
 import com.mycompany.vbisapi.model.Predavac;
 import com.mycompany.vbisapi.service.PredavacService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,12 +28,12 @@ public class PredavacController {
     private PredavacService predavacService;
     
     @PostMapping("/registracija")
-    public String registrujPredavaca(@RequestBody Predavac p){
+    public ResponseEntity<?> registrujPredavaca(@RequestBody Predavac p){
         try{
             predavacService.registrujPredavaca(p);
-            return "Uspeh: Predavac " + p.getIme() + " " + p.getPrezime() + " je uspesno registrovan!";
+            return ResponseEntity.ok("Uspeh: Predavac " + p.getIme() + " " + p.getPrezime() + " je uspesno registrovan!");
         }catch (Exception e){
-            return "greska pri registraciji predavaca: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("greska pri registraciji predavaca: " + e.getMessage());
         }
     }
 }

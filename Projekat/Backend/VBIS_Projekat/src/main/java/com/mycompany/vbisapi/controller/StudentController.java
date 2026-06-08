@@ -64,17 +64,17 @@ public class StudentController {
             studentService.azurirajStudenta(s);
             return ResponseEntity.ok(s);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri ažuriranju.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri ažuriranju: " + e.getMessage());
         }
     }
     
     @PostMapping("/registracija")
-    public String registracijaStudenta(@RequestBody Student s){
+    public ResponseEntity<?> registracijaStudenta(@RequestBody Student s){
         try {
             studentService.registrujStudenta(s);
-            return "Uspeh: Student " + s.getIme() + " " + s.getPrezime() + " je registrovan u oba sistema!";
+            return ResponseEntity.ok("Uspeh: Student " + s.getIme() + " " + s.getPrezime() + " je registrovan u oba sistema!");
         } catch (Exception e){
-            return "Greska pri registraciji: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greska pri registraciji: " + e.getMessage());
         }
     }
     
@@ -82,8 +82,6 @@ public class StudentController {
     public ResponseEntity<?> obrisiStudenta(@PathVariable String id) {
         try {
             studentService.obrisiStudenta(id);
-            fusekiService.obrisiKorisnikaIzRDF(id);
-            
             return ResponseEntity.ok("Nalog studenta je uspešno obrisan iz svih baza.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri brisanju: " + e.getMessage());
@@ -107,7 +105,6 @@ public class StudentController {
             }
             return ResponseEntity.ok("Uspešno validirano i sačuvano " + brojSacuvanih + " položenih ispita.");
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Greška pri importu polaganja: " + e.getMessage());
         }
     }
@@ -127,7 +124,6 @@ public class StudentController {
             List<Student> aktivniStudenti = studentService.nadjiAktivneStudente();
             return ResponseEntity.ok(aktivniStudenti);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

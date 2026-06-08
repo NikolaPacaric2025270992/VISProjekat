@@ -7,7 +7,6 @@ package com.mycompany.vbisapi.controller;
 import com.mycompany.vbisapi.model.Agencija;
 import com.mycompany.vbisapi.model.LoginDTO;
 import com.mycompany.vbisapi.service.AgencijaService;
-import com.mycompany.vbisapi.service.FusekiService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +31,6 @@ public class AgencijaController {
     @Autowired
     private AgencijaService agencijaService;
     
-    @Autowired
-    private FusekiService fusekiService;
-    
     @PostMapping("/login")
     public ResponseEntity<?> loginAgencija(@RequestBody LoginDTO loginPodaci) {
         Agencija a = agencijaService.login(loginPodaci.getEmail(), loginPodaci.getLozinka());
@@ -49,21 +45,19 @@ public class AgencijaController {
     public ResponseEntity<?> azurirajAgenciju(@RequestBody Agencija a) {
         try {
             agencijaService.azurirajAgenciju(a);
-            fusekiService.obrisiKorisnikaIzRDF(a.getId());
-            fusekiService.sacuvajAgencijuURDF(a);
             return ResponseEntity.ok(a); 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri ažuriranju.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri ažuriranju: " + e.getMessage());
         }
     }
     
     @PostMapping("/registracija")
-    public String registruj(@RequestBody Agencija a){
+    public ResponseEntity<?> registruj(@RequestBody Agencija a){
         try{
             agencijaService.registrujAgenciju(a);
-            return "Uspeh: Agencija " + a.getNazivAgencije() + " je registrovana!";
+            return ResponseEntity.ok("Uspeh: Agencija " + a.getNazivAgencije() + " je registrovana!");
         }catch (Exception e){
-            return "Greska pri registraciji agencije: " + e.getMessage();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greska pri registraciji agencije: " + e.getMessage());
         }
     }
     
@@ -72,10 +66,9 @@ public class AgencijaController {
     public ResponseEntity<?> obrisiAgenciju(@PathVariable String id) {
         try {
             agencijaService.obrisiAgenciju(id); 
-            fusekiService.obrisiKorisnikaIzRDF(id);
             return ResponseEntity.ok("Nalog agencije uspešno obrisan.");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri brisanju.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri brisanju: " + e.getMessage());
         }
     }
 }

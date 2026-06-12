@@ -23,7 +23,16 @@ public class PredmetService {
     
     public void dodajPredmet(Predmet p){
         arango.sacuvajPredmet(p);
-        fuseki.sacuvajPredmetURDF(p);
+        try {
+            fuseki.sacuvajPredmetURDF(p);
+        } catch (RuntimeException e) {
+            SinhronizacijaHelper.rollbackArangoUpis(
+                    "predmeta",
+                    p.getId(),
+                    () -> arango.obrisiPredmet(p.getId()),
+                    e);
+            throw e;
+        }
         System.out.println("PredmetService: Predmet '" + p.getNazivPredmeta() + "' je sinhronizovan.");
     }
 }

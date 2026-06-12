@@ -10,7 +10,7 @@
       "predmetId": { "type": "string" },
       "ocena": { 
         "type": "integer",
-        "minimum": 5,
+        "minimum": 6,
         "maximum": 10
       }
     },

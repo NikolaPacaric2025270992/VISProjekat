@@ -23,13 +23,22 @@ public class PolaganjeService {
     
     public void dodajPolaganje(Polaganje p){
         arango.sacuvajPolaganje(p);
-        fuseki.sacuvajPolaganjeURDF(p);
+        try {
+            fuseki.sacuvajPolaganjeURDF(p);
+        } catch (RuntimeException e) {
+            SinhronizacijaHelper.rollbackArangoUpis(
+                    "polaganja",
+                    p.getId(),
+                    () -> arango.obrisiPolaganje(p.getId()),
+                    e);
+            throw e;
+        }
         System.out.println("PolaganjeService: Polaganje uspesno evidentirano u oba sistema.");
     }
     
     public void obrisiPolaganje(String id) {
-        arango.obrisiPolaganje(id);
         fuseki.obrisiPolaganjeIzRDF(id);
+        arango.obrisiPolaganje(id);
         System.out.println("PolaganjeService: Polaganje " + id + " uspesno uklonjeno iz obe baze.");
     }
 }

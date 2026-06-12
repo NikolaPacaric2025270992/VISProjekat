@@ -38,6 +38,10 @@ function StudentDashboard() {
         if (!ulogovanKorisnik || rola !== 'student') { navigate('/prijava'); return; }
 
         const podaciStudenta = JSON.parse(ulogovanKorisnik);
+        if (podaciStudenta.lozinka) {
+            delete podaciStudenta.lozinka;
+            localStorage.setItem('user', JSON.stringify(podaciStudenta));
+        }
         setStudent(podaciStudenta);
 
         // 1. Učitavanje predmeta i polaganja (ova dva mogu ostati nezavisna)
@@ -79,23 +83,40 @@ function StudentDashboard() {
 
     const handleAzurirajProfil = async (e) => {
         e.preventDefault();
-        const azuriranStudent = { ...student, ime: editIme, prezime: editPrezime, traziZaposlenje: editTraziZaposlenje };
+        const azuriranStudent = {
+            id: student.id,
+            ime: editIme,
+            prezime: editPrezime,
+            email: student.email,
+            nivoStudija: student.nivoStudija,
+            traziZaposlenje: editTraziZaposlenje
+        };
+        const menjaLozinku = trenutnaLozinka || novaLozinka || potvrdaLozinke;
         
-        if (trenutnaLozinka || novaLozinka || potvrdaLozinke) {
-            if (trenutnaLozinka !== student.lozinka) { alert("Trenutna lozinka nije tačna!"); return; }
+        if (menjaLozinku) {
+            if (!trenutnaLozinka || !novaLozinka || !potvrdaLozinke) { alert("Popunite sva polja za promenu lozinke."); return; }
             if (novaLozinka !== potvrdaLozinke) { alert("Nove lozinke se ne poklapaju!"); return; }
             if (novaLozinka.length < 5) { alert("Nova lozinka mora imati bar 5 karaktera."); return; }
-            azuriranStudent.lozinka = novaLozinka; 
         }
 
         try {
-            await axios.put('http://localhost:8080/api/studenti/update', azuriranStudent);
-            setStudent(azuriranStudent);
-            localStorage.setItem('user', JSON.stringify(azuriranStudent)); 
+            if (menjaLozinku) {
+                await axios.put('http://localhost:8080/api/studenti/promeni-lozinku', {
+                    email: student.email,
+                    staraLozinka: trenutnaLozinka,
+                    novaLozinka
+                });
+            }
+
+            const res = await axios.put('http://localhost:8080/api/studenti/update', azuriranStudent);
+            setStudent(res.data);
+            localStorage.setItem('user', JSON.stringify(res.data));
             alert("Profil uspešno ažuriran!");
             setTrenutnaLozinka(''); setNovaLozinka(''); setPotvrdaLozinke('');
             setPrikaziPodesavanja(false); 
-        } catch (error) { alert("Greška pri ažuriranju profila."); }
+        } catch (error) {
+            alert(error.response?.data || "Greška pri ažuriranju profila.");
+        }
     };
 
     const handleObrisiNalog = async () => {
@@ -105,7 +126,7 @@ function StudentDashboard() {
                 await axios.delete(`http://localhost:8080/api/studenti/obrisi/${student.id}`);
                 alert("Nalog je uspešno obrisan.");
                 handleOdjava(); 
-            } catch (error) { alert("Greška pri brisanju naloga."); }
+            } catch { alert("Greška pri brisanju naloga."); }
         }
     };
 
@@ -117,7 +138,7 @@ function StudentDashboard() {
                 const resPreporuke = await axios.get(`http://localhost:8080/api/studenti/${student.email}/preporuke`);
                 setPreporuceniOglasi(resPreporuke.data);
                 alert("Ispit uspešno uklonjen.");
-            } catch (error) { alert("Greška pri brisanju ispita."); }
+            } catch { alert("Greška pri brisanju ispita."); }
         }
     };
 
@@ -149,7 +170,7 @@ function StudentDashboard() {
             
             const resPreporuke = await axios.get(`http://localhost:8080/api/studenti/${student.email}/preporuke`);
             setPreporuceniOglasi(resPreporuke.data);
-        } catch (error) { alert("Greška pri čuvanju."); }
+        } catch { alert("Greška pri čuvanju."); }
     };
 
     const handleImportPolaganja = async (e) => {
@@ -196,7 +217,7 @@ function StudentDashboard() {
             link.href = window.URL.createObjectURL(blob);
             link.download = `${filename}.${format}`;
             link.click();
-        } catch (error) {
+        } catch {
             alert("Greška pri preuzimanju fajla.");
         }
     };

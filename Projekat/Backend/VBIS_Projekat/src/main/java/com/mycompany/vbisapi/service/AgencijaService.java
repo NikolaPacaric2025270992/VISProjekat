@@ -5,6 +5,8 @@
 package com.mycompany.vbisapi.service;
 
 import com.mycompany.vbisapi.model.Agencija;
+import com.mycompany.vbisapi.model.Oglas;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,9 @@ public class AgencijaService {
     
     @Autowired
     private FusekiService fuseki;
+
+    @Autowired
+    private OglasService oglasService;
     
     public Agencija login(String email, String lozinka){
         return arango.loginAgencija(email, lozinka);
@@ -27,7 +32,16 @@ public class AgencijaService {
     
     public void registrujAgenciju(Agencija a){
         arango.sacuvajAgenciju(a);
-        fuseki.sacuvajAgencijuURDF(a);
+        try {
+            fuseki.sacuvajAgencijuURDF(a);
+        } catch (RuntimeException e) {
+            SinhronizacijaHelper.rollbackArangoUpis(
+                    "agencije",
+                    a.getId(),
+                    () -> arango.obrisiAgenciju(a.getId()),
+                    e);
+            throw e;
+        }
         
         System.out.println("AgencijaService: Agencija '" + a.getNazivAgencije() + "' je u oba sistema!");
     }
@@ -36,10 +50,28 @@ public class AgencijaService {
         arango.azurirajAgenciju(a);
         fuseki.azurirajAgencijuURDF(a);
     }
+
+    public void promeniLozinku(String email, String staraLozinka, String novaLozinka) {
+        if (novaLozinka == null || novaLozinka.length() < 5) {
+            throw new IllegalArgumentException("Nova lozinka mora imati bar 5 karaktera.");
+        }
+
+        Agencija agencija = arango.loginAgencija(email, staraLozinka);
+        if (agencija == null) {
+            throw new IllegalArgumentException("Trenutna lozinka nije tačna.");
+        }
+
+        arango.promeniLozinkuAgencije(email, novaLozinka);
+    }
     
     public void obrisiAgenciju(String id) {
-        arango.obrisiAgenciju(id);
+        List<Oglas> oglasi = arango.nadjiOglasePoAgenciji(id);
+        for (Oglas oglas : oglasi) {
+            oglasService.obrisiOglas(oglas.getId());
+        }
+
         fuseki.obrisiKorisnikaIzRDF(id);
+        arango.obrisiAgenciju(id);
         System.out.println("AgencijaService: Agencija " + id + " je obrisana.");
     }
 }

@@ -24,7 +24,16 @@ public class VestinaService {
     
     public void dodajVestinu(Vestina v){
         arango.sacuvajVestinu(v);
-        fuseki.sacuvajVestinuURDF(v);
+        try {
+            fuseki.sacuvajVestinuURDF(v);
+        } catch (RuntimeException e) {
+            SinhronizacijaHelper.rollbackArangoUpis(
+                    "vestine",
+                    v.getId(),
+                    () -> arango.obrisiVestinu(v.getId()),
+                    e);
+            throw e;
+        }
         System.out.println("VestinaService: Vestina '" + 
                             v.getNaziv() + "' je sinhronizovana.");
     }

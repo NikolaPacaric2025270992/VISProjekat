@@ -12,7 +12,7 @@
                             <xs:element name="ocena">
                                 <xs:simpleType>
                                     <xs:restriction base="xs:integer">
-                                        <xs:minInclusive value="5"/>
+                                        <xs:minInclusive value="6"/>
                                         <xs:maxInclusive value="10"/>
                                     </xs:restriction>
                                 </xs:simpleType>

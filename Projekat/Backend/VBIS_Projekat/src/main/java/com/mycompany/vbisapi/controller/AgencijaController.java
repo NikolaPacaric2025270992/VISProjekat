@@ -5,7 +5,9 @@
 package com.mycompany.vbisapi.controller;
 
 import com.mycompany.vbisapi.model.Agencija;
+import com.mycompany.vbisapi.model.AgencijaResponseDTO;
 import com.mycompany.vbisapi.model.LoginDTO;
+import com.mycompany.vbisapi.model.PromenaLozinkeDTO;
 import com.mycompany.vbisapi.service.AgencijaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,9 +37,9 @@ public class AgencijaController {
     public ResponseEntity<?> loginAgencija(@RequestBody LoginDTO loginPodaci) {
         Agencija a = agencijaService.login(loginPodaci.getEmail(), loginPodaci.getLozinka());
         if (a != null) {
-            return ResponseEntity.ok(a); 
+            return ResponseEntity.ok(new AgencijaResponseDTO(a));
         } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!"); 
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!");
         }
     }
 
@@ -45,9 +47,21 @@ public class AgencijaController {
     public ResponseEntity<?> azurirajAgenciju(@RequestBody Agencija a) {
         try {
             agencijaService.azurirajAgenciju(a);
-            return ResponseEntity.ok(a); 
+            return ResponseEntity.ok(new AgencijaResponseDTO(a));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri ažuriranju: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/promeni-lozinku")
+    public ResponseEntity<?> promeniLozinku(@RequestBody PromenaLozinkeDTO dto) {
+        try {
+            agencijaService.promeniLozinku(dto.getEmail(), dto.getStaraLozinka(), dto.getNovaLozinka());
+            return ResponseEntity.ok("Lozinka je uspešno promenjena.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri promeni lozinke: " + e.getMessage());
         }
     }
     

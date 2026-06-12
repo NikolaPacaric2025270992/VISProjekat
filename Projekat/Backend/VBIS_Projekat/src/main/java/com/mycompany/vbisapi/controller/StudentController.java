@@ -6,13 +6,16 @@ package com.mycompany.vbisapi.controller;
 
 import com.mycompany.vbisapi.model.LoginDTO;
 import com.mycompany.vbisapi.model.Polaganje;
+import com.mycompany.vbisapi.model.PromenaLozinkeDTO;
 import com.mycompany.vbisapi.model.PreporuceniOglas;
 import com.mycompany.vbisapi.model.Student;
+import com.mycompany.vbisapi.model.StudentResponseDTO;
 import com.mycompany.vbisapi.service.ExportService;
 import com.mycompany.vbisapi.service.FusekiService;
 import com.mycompany.vbisapi.service.ImportService;
 import com.mycompany.vbisapi.service.PolaganjeService;
 import com.mycompany.vbisapi.service.StudentService;
+import java.util.stream.Collectors;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,7 +55,7 @@ public class StudentController {
     public ResponseEntity<?> loginStudent(@RequestBody LoginDTO loginPodaci) {
         Student s = studentService.login(loginPodaci.getEmail(), loginPodaci.getLozinka());
         if (s != null) {
-            return ResponseEntity.ok(s); 
+            return ResponseEntity.ok(new StudentResponseDTO(s));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Pogrešan email ili lozinka!");
         }
@@ -62,9 +65,21 @@ public class StudentController {
     public ResponseEntity<?> azurirajStudenta(@RequestBody Student s) {
         try {
             studentService.azurirajStudenta(s);
-            return ResponseEntity.ok(s);
+            return ResponseEntity.ok(new StudentResponseDTO(s));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri ažuriranju: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/promeni-lozinku")
+    public ResponseEntity<?> promeniLozinku(@RequestBody PromenaLozinkeDTO dto) {
+        try {
+            studentService.promeniLozinku(dto.getEmail(), dto.getStaraLozinka(), dto.getNovaLozinka());
+            return ResponseEntity.ok("Lozinka je uspešno promenjena.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri promeni lozinke: " + e.getMessage());
         }
     }
     
@@ -119,10 +134,13 @@ public class StudentController {
     }
     
     @GetMapping("/aktivni")
-    public ResponseEntity<List<Student>> getAktivniStudenti() {
+    public ResponseEntity<List<StudentResponseDTO>> getAktivniStudenti() {
         try {
             List<Student> aktivniStudenti = studentService.nadjiAktivneStudente();
-            return ResponseEntity.ok(aktivniStudenti);
+            List<StudentResponseDTO> response = aktivniStudenti.stream()
+                    .map(StudentResponseDTO::new)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -131,7 +149,9 @@ public class StudentController {
     @GetMapping("/aktivni/export")
     public ResponseEntity<byte[]> exportAktivniStudenti(@RequestParam(defaultValue = "json") String format) {
         try {
-            List<Student> aktivni = studentService.nadjiAktivneStudente();
+            List<StudentResponseDTO> aktivni = studentService.nadjiAktivneStudente().stream()
+                    .map(StudentResponseDTO::new)
+                    .collect(Collectors.toList());
             byte[] fajl = format.equalsIgnoreCase("xml") ? exportService.eksportujUXml(aktivni) : exportService.eksportujUJson(aktivni);
             String ekstenzija = format.equalsIgnoreCase("xml") ? ".xml" : ".json";
             

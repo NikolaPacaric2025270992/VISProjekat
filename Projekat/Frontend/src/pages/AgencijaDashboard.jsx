@@ -39,6 +39,10 @@ function AgencijaDashboard() {
         }
 
         const podaciAgencije = JSON.parse(ulogovanKorisnik);
+        if (podaciAgencije.lozinka) {
+            delete podaciAgencije.lozinka;
+            localStorage.setItem('user', JSON.stringify(podaciAgencije));
+        }
         setAgencija(podaciAgencije);
 
         axios.get('http://localhost:8080/api/vestine')
@@ -76,28 +80,37 @@ function AgencijaDashboard() {
     const handleAzurirajProfil = async (e) => {
         e.preventDefault();
         const azuriranaAgencija = { 
-            ...agencija, 
+            id: agencija.id,
+            email: agencija.email,
             nazivAgencije: editNazivAgencije, 
             lokacija: editLokacija, 
             pib: editPib 
         };
+        const menjaLozinku = trenutnaLozinka || novaLozinka || potvrdaLozinke;
 
-        if (trenutnaLozinka || novaLozinka || potvrdaLozinke) {
-            if (trenutnaLozinka !== agencija.lozinka) { alert("Trenutna lozinka nije tačna!"); return; }
+        if (menjaLozinku) {
+            if (!trenutnaLozinka || !novaLozinka || !potvrdaLozinke) { alert("Popunite sva polja za promenu lozinke."); return; }
             if (novaLozinka !== potvrdaLozinke) { alert("Nove lozinke se ne poklapaju!"); return; }
             if (novaLozinka.length < 5) { alert("Nova lozinka mora imati bar 5 karaktera."); return; }
-            azuriranaAgencija.lozinka = novaLozinka;
         }
         
         try {
-            await axios.put('http://localhost:8080/api/agencija/update', azuriranaAgencija);
-            setAgencija(azuriranaAgencija);
-            localStorage.setItem('user', JSON.stringify(azuriranaAgencija));
+            if (menjaLozinku) {
+                await axios.put('http://localhost:8080/api/agencija/promeni-lozinku', {
+                    email: agencija.email,
+                    staraLozinka: trenutnaLozinka,
+                    novaLozinka
+                });
+            }
+
+            const res = await axios.put('http://localhost:8080/api/agencija/update', azuriranaAgencija);
+            setAgencija(res.data);
+            localStorage.setItem('user', JSON.stringify(res.data));
             alert("Podaci agencije su uspešno ažurirani!");
             setTrenutnaLozinka(''); setNovaLozinka(''); setPotvrdaLozinke('');
             setPrikaziPodesavanja(false);
         } catch (error) {
-            alert("Greška pri ažuriranju agencije.");
+            alert(error.response?.data || "Greška pri ažuriranju agencije.");
         }
     };
 
@@ -108,7 +121,7 @@ function AgencijaDashboard() {
                 await axios.delete(`http://localhost:8080/api/agencija/obrisi/${agencija.id}`);
                 alert("Nalog agencije je uspešno obrisan iz sistema.");
                 handleOdjava();
-            } catch (error) {
+            } catch {
                 alert("Greška pri brisanju naloga agencije.");
             }
         }
@@ -123,7 +136,7 @@ function AgencijaDashboard() {
                     setPrikazanePreporuke(null);
                 }
                 alert("Oglas uspešno obrisan.");
-            } catch (error) { alert("Greška pri brisanju oglasa."); }
+            } catch { alert("Greška pri brisanju oglasa."); }
         }
     };
 
@@ -160,7 +173,7 @@ function AgencijaDashboard() {
             setOglasi([...oglasi, noviOglas]); 
             setNaslovOglasa('');
             setZahtevi([{ vestinaId: vestine[0]?.id || '', nivo: 'POCETNI', prioritet: 'NIZAK' }]); 
-        } catch (error) {
+        } catch {
             alert("Greška pri dodavanju oglasa.");
         }
     };
@@ -216,7 +229,7 @@ function AgencijaDashboard() {
             link.href = window.URL.createObjectURL(blob);
             link.download = `${filename}.${format}`;
             link.click();
-        } catch (error) {
+        } catch {
             alert("Greška pri preuzimanju fajla.");
         }
     };

@@ -17,7 +17,7 @@ function Prijava() {
             localStorage.setItem('user', JSON.stringify(res.data));
             localStorage.setItem('role', tip);
             navigate(`/${tip}-dashboard`);
-        } catch (err) {
+        } catch {
             alert("Pogrešan email ili lozinka!");
         }
     };

@@ -33,10 +33,7 @@ public class DatabaseSeederService {
     @EventListener(ApplicationReadyEvent.class)
     public void pokreniSinhronizaciju(){
         System.out.println("=== POKRETANJE SINHRONIZACIJE: Arango -> Fuseki ===");
-        
-        fuseki.ocistiSve();
-        System.out.println("Fuseki baza je ociscnjena.");
-        
+
         List<Vestina> sveVestine = arango.sveVestine();
         List<Predmet> sviPredmeti = arango.sviPredmeti();
         List<Predavac> sviPredavaci = arango.sviPredavaci();
@@ -59,6 +56,9 @@ public class DatabaseSeederService {
         }
         
         System.out.println("Pronadjeni podaci u ArangoDB. Zapocinjem upis u Fuseki...");
+
+        fuseki.ocistiSve();
+        System.out.println("Fuseki baza je ociscnjena.");
         
         sveVestine.forEach(v -> fuseki.sacuvajVestinuURDF(v));
         sviPredavaci.forEach(pr -> fuseki.sacuvajPredavacaURDF(pr));

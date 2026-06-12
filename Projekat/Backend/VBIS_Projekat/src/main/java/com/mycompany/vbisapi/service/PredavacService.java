@@ -23,7 +23,16 @@ public class PredavacService {
     
     public void registrujPredavaca(Predavac p){
         arango.sacuvajPredavaca(p);
-        fuseki.sacuvajPredavacaURDF(p);
+        try {
+            fuseki.sacuvajPredavacaURDF(p);
+        } catch (RuntimeException e) {
+            SinhronizacijaHelper.rollbackArangoUpis(
+                    "predavaca",
+                    p.getId(),
+                    () -> arango.obrisiPredavaca(p.getId()),
+                    e);
+            throw e;
+        }
         System.out.println("PredavacService: Predavac " 
                             + p.getIme() + " " 
                             + p.getPrezime() + " je sinhronizovan.");

@@ -24,15 +24,24 @@ public class OglasService {
     
     public void postaviOglas(Oglas o){
         arango.sacuvajOglas(o);
-        fuseki.sacuvajOglasURDF(o);
+        try {
+            fuseki.sacuvajOglasURDF(o);
+        } catch (RuntimeException e) {
+            SinhronizacijaHelper.rollbackArangoUpis(
+                    "oglasa",
+                    o.getId(),
+                    () -> arango.obrisiOglas(o.getId()),
+                    e);
+            throw e;
+        }
         
         System.out.println("OglasService: Oglas '" + 
                             o.getNaslov() + "' je potpuno sinhronizovan.");
     }
     
     public void obrisiOglas(String id) {
-        arango.obrisiOglas(id);
         fuseki.obrisiOglasIzRDF(id);
+        arango.obrisiOglas(id);
         
         System.out.println("OglasService: Oglas " + id + " uspesno uklonjen iz obe baze.");
     }

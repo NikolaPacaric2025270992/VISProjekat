@@ -21,7 +21,7 @@
               "required": ["id"]
             },
             "nivo": { "type": "string", "enum": ["POCETNI", "SREDNJI", "NAPREDNI"] },
-            "prioritet": { "type": "string", "enum": ["NIZAK", "SREDNJI", "VISOK"] }
+            "prioritet": { "type": "string", "enum": ["NIZAK", "VISOK"] }
           },
           "required": ["vestina", "nivo", "prioritet"]
         }

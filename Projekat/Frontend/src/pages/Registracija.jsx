@@ -36,7 +36,7 @@ function Registracija() {
             await axios.post(url, payload);
             alert('Uspešna registracija! Možete se prijaviti.');
             navigate('/prijava');
-        } catch (error) {
+        } catch {
             alert('Greška pri registraciji. Moguće je da email već postoji.');
         }
     };

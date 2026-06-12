@@ -70,7 +70,7 @@ public class ArangoService {
         try{
             BaseDocument doc = new BaseDocument();
         
-            String generisanId = s.getEmail().replace("@", "_").replace(".", "_");
+            String generisanId = idIzEmaila(s.getEmail());
             s.setId(generisanId);
             
             doc.setKey(generisanId);
@@ -93,7 +93,7 @@ public class ArangoService {
         try{
             BaseDocument doc = new BaseDocument();
         
-            String generisanId = a.getEmail().replace("@", "_").replace(".", "_");
+            String generisanId = idIzEmaila(a.getEmail());
             a.setId(generisanId);
             
             doc.setKey(generisanId);
@@ -208,7 +208,7 @@ public class ArangoService {
         Student ulogovan = cursor.hasNext() ? cursor.next() : null; 
         
         if (ulogovan != null) {
-            ulogovan.setId(email.replace("@", "_").replace(".", "_"));
+            ulogovan.setId(idIzEmaila(email));
         }
         
         return ulogovan;
@@ -224,7 +224,7 @@ public class ArangoService {
         Agencija ulogovana = cursor.hasNext() ? cursor.next() : null;
         
         if (ulogovana != null) {
-            ulogovana.setId(email.replace("@", "_").replace(".", "_"));
+            ulogovana.setId(idIzEmaila(email));
         }
         
         return ulogovana;
@@ -237,11 +237,10 @@ public class ArangoService {
             doc.addAttribute("ime", s.getIme());
             doc.addAttribute("prezime", s.getPrezime());
             doc.addAttribute("email", s.getEmail());
-            doc.addAttribute("lozinka", s.getLozinka());
             doc.addAttribute("nivoStudija", s.getNivoStudija());
             doc.addAttribute("traziZaposlenje", s.isTraziZaposlenje());
 
-            String key = s.getEmail().replace("@", "_").replace(".", "_");
+            String key = idIzEmaila(s.getEmail());
             arangoDB.db(dbName).collection("studenti").updateDocument(key, doc);
             System.out.println("ArangoDB: Student " + s.getIme() + " ažuriran.");
         } catch (Exception e) {
@@ -254,7 +253,6 @@ public class ArangoService {
             BaseDocument doc = new BaseDocument();
             doc.addAttribute("nazivAgencije", a.getNazivAgencije());
             doc.addAttribute("email", a.getEmail());
-            doc.addAttribute("lozinka", a.getLozinka());
             doc.addAttribute("lokacija", a.getLokacija());
             doc.addAttribute("pib", a.getPib());
 
@@ -262,6 +260,28 @@ public class ArangoService {
             System.out.println("ArangoDB: Agencija " + a.getNazivAgencije() + " ažurirana.");
         } catch (Exception e) {
             throw arangoGreska("Ažuriranje agencije " + a.getId(), e);
+        }
+    }
+
+    public void promeniLozinkuStudenta(String email, String novaLozinka) {
+        try {
+            BaseDocument doc = new BaseDocument();
+            doc.addAttribute("lozinka", novaLozinka);
+            arangoDB.db(dbName).collection("studenti").updateDocument(idIzEmaila(email), doc);
+            System.out.println("ArangoDB: Lozinka studenta " + email + " je ažurirana.");
+        } catch (Exception e) {
+            throw arangoGreska("Promena lozinke studenta " + email, e);
+        }
+    }
+
+    public void promeniLozinkuAgencije(String email, String novaLozinka) {
+        try {
+            BaseDocument doc = new BaseDocument();
+            doc.addAttribute("lozinka", novaLozinka);
+            arangoDB.db(dbName).collection("agencije").updateDocument(idIzEmaila(email), doc);
+            System.out.println("ArangoDB: Lozinka agencije " + email + " je ažurirana.");
+        } catch (Exception e) {
+            throw arangoGreska("Promena lozinke agencije " + email, e);
         }
     }
     
@@ -294,6 +314,24 @@ public class ArangoService {
         try {
             arangoDB.db(dbName).collection("oglasi").deleteDocument(id);
         } catch (Exception e) { throw arangoGreska("Brisanje oglasa " + id, e); }
+    }
+
+    public void obrisiPredmet(String id) {
+        try {
+            arangoDB.db(dbName).collection("predmeti").deleteDocument(id);
+        } catch (Exception e) { throw arangoGreska("Brisanje predmeta " + id, e); }
+    }
+
+    public void obrisiPredavaca(String id) {
+        try {
+            arangoDB.db(dbName).collection("predavaci").deleteDocument(id);
+        } catch (Exception e) { throw arangoGreska("Brisanje predavaca " + id, e); }
+    }
+
+    public void obrisiVestinu(String id) {
+        try {
+            arangoDB.db(dbName).collection("vestine").deleteDocument(id);
+        } catch (Exception e) { throw arangoGreska("Brisanje vestine " + id, e); }
     }
     
     public java.util.List<Oglas> nadjiOglasePoAgenciji(String agencijaId) {
@@ -409,5 +447,9 @@ public class ArangoService {
 
     private RuntimeException arangoGreska(String operacija, Exception e) {
         return new IllegalStateException(operacija + " nije uspela u ArangoDB.", e);
+    }
+
+    private String idIzEmaila(String email) {
+        return email.replace("@", "_").replace(".", "_");
     }
 }

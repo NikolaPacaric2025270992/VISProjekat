@@ -15,6 +15,10 @@ import com.mycompany.vbisapi.service.FusekiService;
 import com.mycompany.vbisapi.service.ImportService;
 import com.mycompany.vbisapi.service.PolaganjeService;
 import com.mycompany.vbisapi.service.StudentService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,20 +111,46 @@ public class StudentController {
     public ResponseEntity<?> importPolaganja(
             @RequestParam("fajl") MultipartFile fajl,
             @RequestParam("studentId") String studentId) {
+        List<String> sacuvanaPolaganja = new ArrayList<>();
+
         try {
             List<Polaganje> novaPolaganja = importService.obradiFajlSaPolaganjima(fajl);
+            long importVreme = System.currentTimeMillis();
+
+            Set<String> predmetiIzImporta = new HashSet<>();
+            for (int i = 0; i < novaPolaganja.size(); i++) {
+                Polaganje p = novaPolaganja.get(i);
+                p.setStudentId(studentId);
+                p.setId("polaganje_import_" + importVreme + "_" + i);
+
+                if (!predmetiIzImporta.add(p.getPredmetId())) {
+                    throw new IllegalArgumentException("Import sadrži duplirano polaganje za predmet '" + p.getPredmetId() + "'.");
+                }
+
+                polaganjeService.validirajNovoPolaganje(p);
+            }
 
             int brojSacuvanih = 0;
             for (Polaganje p : novaPolaganja) {
-                p.setStudentId(studentId);
-                p.setId("polaganje_" + System.currentTimeMillis() + "_" + brojSacuvanih);
-                
                 polaganjeService.dodajPolaganje(p);
+                sacuvanaPolaganja.add(p.getId());
                 brojSacuvanih++;
             }
             return ResponseEntity.ok("Uspešno validirano i sačuvano " + brojSacuvanih + " položenih ispita.");
         } catch (Exception e) {
+            rollbackImportovanihPolaganja(sacuvanaPolaganja, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Greška pri importu polaganja: " + e.getMessage());
+        }
+    }
+
+    private void rollbackImportovanihPolaganja(List<String> sacuvanaPolaganja, Exception originalnaGreska) {
+        Collections.reverse(sacuvanaPolaganja);
+        for (String id : sacuvanaPolaganja) {
+            try {
+                polaganjeService.obrisiPolaganje(id);
+            } catch (Exception rollbackGreska) {
+                originalnaGreska.addSuppressed(rollbackGreska);
+            }
         }
     }
     

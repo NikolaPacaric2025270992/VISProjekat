@@ -26,7 +26,7 @@ public class OglasService {
     private FusekiService fuseki;
     
     public void postaviOglas(Oglas o){
-        validirajZahtevaneVestine(o);
+        validirajOglasZaObjavu(o);
 
         arango.sacuvajOglas(o);
         try {
@@ -59,9 +59,17 @@ public class OglasService {
         return arango.sviOglasi(); 
     }
 
-    private void validirajZahtevaneVestine(Oglas o) {
+    public void validirajOglasZaObjavu(Oglas o) {
+        if (o.getId() == null || o.getId().isBlank()) {
+            throw new IllegalArgumentException("Oglas mora imati ID.");
+        }
+
+        if (o.getNaslov() == null || o.getNaslov().isBlank()) {
+            throw new IllegalArgumentException("Oglas mora imati naslov.");
+        }
+
         if (o.getZahtevaneVestine() == null || o.getZahtevaneVestine().isEmpty()) {
-            return;
+            throw new IllegalArgumentException("Oglas mora imati bar jednu zahtevanu veštinu.");
         }
 
         Set<String> vidjeneVestine = new HashSet<>();
@@ -73,6 +81,18 @@ public class OglasService {
 
             if (!vidjeneVestine.add(vestinaId)) {
                 throw new IllegalArgumentException("Veština '" + vestinaId + "' je duplirana u istom oglasu.");
+            }
+
+            if (zahtev.getNivo() == null) {
+                throw new IllegalArgumentException("Zahtev za veštinu '" + vestinaId + "' mora imati nivo.");
+            }
+
+            if (zahtev.getPrioritet() == null) {
+                throw new IllegalArgumentException("Zahtev za veštinu '" + vestinaId + "' mora imati prioritet.");
+            }
+
+            if (!arango.postojiVestina(vestinaId)) {
+                throw new IllegalArgumentException("Veština '" + vestinaId + "' ne postoji u bazi.");
             }
         }
     }

@@ -7,12 +7,12 @@
     "agencijaId": "placeholder_agencija",
     "zahtevaneVestine": [
       {
-        "vestina": { "id": "vestina_java" },
+        "vestina": { "id": "v_java" },
         "nivo": "NAPREDNI",
         "prioritet": "VISOK"
       },
       {
-        "vestina": { "id": "vestina_baze" },
+        "vestina": { "id": "v_mysql" },
         "nivo": "SREDNJI",
         "prioritet": "NIZAK"
       }
@@ -26,12 +26,12 @@
     "agencijaId": "placeholder_agencija",
     "zahtevaneVestine": [
       {
-        "vestina": { "id": "vestina_react" },
+        "vestina": { "id": "v_reactjs" },
         "nivo": "NAPREDNI",
         "prioritet": "VISOK"
       },
       {
-        "vestina": { "id": "vestina_uiux" },
+        "vestina": { "id": "v_javascript" },
         "nivo": "SREDNJI",
         "prioritet": "NIZAK"
       }
@@ -45,12 +45,12 @@
     "agencijaId": "placeholder_agencija",
     "zahtevaneVestine": [
       {
-        "vestina": { "id": "vestina_react" },
+        "vestina": { "id": "v_reactjs" },
         "nivo": "SREDNJI",
         "prioritet": "VISOK"
       },
       {
-        "vestina": { "id": "vestina_java" },
+        "vestina": { "id": "v_java" },
         "nivo": "SREDNJI",
         "prioritet": "VISOK"
       }
@@ -64,12 +64,12 @@
     "agencijaId": "placeholder_agencija",
     "zahtevaneVestine": [
       {
-        "vestina": { "id": "vestina_os" },
+        "vestina": { "id": "v_linux" },
         "nivo": "NAPREDNI",
         "prioritet": "VISOK"
       },
       {
-        "vestina": { "id": "vestina_mreze" },
+        "vestina": { "id": "v_docker" },
         "nivo": "NAPREDNI",
         "prioritet": "VISOK"
       }
@@ -83,12 +83,12 @@
     "agencijaId": "placeholder_agencija",
     "zahtevaneVestine": [
       {
-        "vestina": { "id": "vestina_python" },
+        "vestina": { "id": "v_python" },
         "nivo": "SREDNJI",
         "prioritet": "VISOK"
       },
       {
-        "vestina": { "id": "vestina_ml" },
+        "vestina": { "id": "v_machine_learning" },
         "nivo": "POCETNI",
         "prioritet": "NIZAK"
       }

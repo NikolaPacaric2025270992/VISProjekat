@@ -450,6 +450,44 @@ public class ArangoService {
         }
     }
 
+    public boolean postojiVestina(String id) {
+        return postojiDokumentSaId("vestine", id);
+    }
+
+    public boolean postojiPredmet(String id) {
+        return postojiDokumentSaId("predmeti", id);
+    }
+
+    public boolean postojiPolaganjeZaStudentaIPredmet(String studentId, String predmetId) {
+        String query = "RETURN LENGTH(FOR p IN polaganja "
+                + "FILTER p.studentId == @studentId AND p.predmetId == @predmetId "
+                + "LIMIT 1 RETURN 1) > 0";
+        Map<String, Object> bindVars = new HashMap<>();
+        bindVars.put("studentId", studentId);
+        bindVars.put("predmetId", predmetId);
+
+        try {
+            ArangoCursor<Boolean> cursor = arangoDB.db(dbName).query(query, Boolean.class, bindVars, null);
+            return cursor.hasNext() && Boolean.TRUE.equals(cursor.next());
+        } catch (Exception e) {
+            throw arangoGreska("Provera polaganja za studenta " + studentId + " i predmet " + predmetId, e);
+        }
+    }
+
+    private boolean postojiDokumentSaId(String kolekcija, String id) {
+        String query = "RETURN LENGTH(FOR d IN " + kolekcija + " "
+                + "FILTER d.id == @id OR d._key == @id LIMIT 1 RETURN 1) > 0";
+        Map<String, Object> bindVars = new HashMap<>();
+        bindVars.put("id", id);
+
+        try {
+            ArangoCursor<Boolean> cursor = arangoDB.db(dbName).query(query, Boolean.class, bindVars, null);
+            return cursor.hasNext() && Boolean.TRUE.equals(cursor.next());
+        } catch (Exception e) {
+            throw arangoGreska("Provera postojanja dokumenta " + id + " u kolekciji " + kolekcija, e);
+        }
+    }
+
     private RuntimeException arangoGreska(String operacija, Exception e) {
         return new IllegalStateException(operacija + " nije uspela u ArangoDB.", e);
     }

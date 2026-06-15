@@ -2,19 +2,19 @@
   {
     "id": "placeholder",
     "studentId": "placeholder_student",
-    "predmetId": "predmet_it_uvod_java",
+    "predmetId": "pr_oop1",
     "ocena": 8
   },
   {
     "id": "placeholder",
     "studentId": "placeholder_student",
-    "predmetId": "predmet_it_arhitektura_racunara",
+    "predmetId": "pr_baze_podataka",
     "ocena": 10
   },
   {
     "id": "placeholder",
     "studentId": "placeholder_student",
-    "predmetId": "predmet_it_mreze",
+    "predmetId": "pr_veb_is",
     "ocena": 7
   }
 ]

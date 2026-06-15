@@ -10,7 +10,11 @@ import com.mycompany.vbisapi.service.ExportService;
 import com.mycompany.vbisapi.service.FusekiService;
 import com.mycompany.vbisapi.service.ImportService;
 import com.mycompany.vbisapi.service.OglasService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,21 +76,47 @@ public class OglasController {
     public ResponseEntity<?> importOglasa(
             @RequestParam("fajl") MultipartFile fajl,
             @RequestParam("agencijaId") String agencijaId) {
+        List<String> sacuvaniOglasi = new ArrayList<>();
         
         try {
             List<Oglas> noviOglasi = importService.obradiFajlSaOglasima(fajl);
+            long importVreme = System.currentTimeMillis();
+
+            Set<String> idJeviOglasa = new HashSet<>();
+            for (int i = 0; i < noviOglasi.size(); i++) {
+                Oglas o = noviOglasi.get(i);
+                o.setAgencijaId(agencijaId);
+                o.setId("oglas_import_" + importVreme + "_" + i);
+
+                if (!idJeviOglasa.add(o.getId())) {
+                    throw new IllegalArgumentException("Import sadrži dupliran oglas ID '" + o.getId() + "'.");
+                }
+
+                oglasService.validirajOglasZaObjavu(o);
+            }
             
             int brojSacuvanih = 0;
             for (Oglas o : noviOglasi) {
-                o.setAgencijaId(agencijaId);
-                
                 oglasService.postaviOglas(o);
+                sacuvaniOglasi.add(o.getId());
                 brojSacuvanih++;
             }
             
             return ResponseEntity.ok("Uspešno validirano i sačuvano " + brojSacuvanih + " oglasa.");
         } catch (Exception e) {
+            rollbackImportovanihOglasa(sacuvaniOglasi, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Greška pri importu: " + e.getMessage());
+        }
+    }
+
+    private void rollbackImportovanihOglasa(List<String> sacuvaniOglasi, Exception originalnaGreska) {
+        Collections.reverse(sacuvaniOglasi);
+        for (String id : sacuvaniOglasi) {
+            try {
+                oglasService.obrisiOglas(id);
+            } catch (Exception rollbackGreska) {
+                originalnaGreska.addSuppressed(rollbackGreska);
+            }
         }
     }
     

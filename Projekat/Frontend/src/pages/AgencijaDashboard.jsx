@@ -11,6 +11,7 @@ function AgencijaDashboard() {
     
     const [prikazanePreporuke, setPrikazanePreporuke] = useState(null); 
     const [aktivniStudenti, setAktivniStudenti] = useState([]);
+    const [detaljiStudenta, setDetaljiStudenta] = useState(null);
 
     const [naslovOglasa, setNaslovOglasa] = useState('');
     const [zahtevi, setZahtevi] = useState([
@@ -299,6 +300,21 @@ function AgencijaDashboard() {
         }
     };
 
+    const nazivVestine = (vestinaId) => {
+        const vestina = vestine.find(v => v.id === vestinaId || v._key === vestinaId);
+        return vestina?.naziv || vestinaId;
+    };
+
+    const formatirajEnum = (vrednost) => {
+        if (!vrednost) return '';
+        return vrednost.charAt(0).toUpperCase() + vrednost.slice(1).toLowerCase();
+    };
+
+    const prikaziKontakt = (studentZaKontakt) => {
+        const email = studentZaKontakt.email || formatirajEmail(studentZaKontakt.id);
+        alert(`Demo akcija: ovde bi se otvorila komunikacija sa kandidatom ${email}.`);
+    };
+
     if (!agencija) return <div className="text-center mt-5">Učitavanje...</div>;
 
     return (
@@ -484,7 +500,7 @@ function AgencijaDashboard() {
                                                 <div className="mb-2">
                                                     {oglas.zahtevaneVestine && oglas.zahtevaneVestine.map((zv, idx) => (
                                                         <span key={idx} className="badge bg-light text-secondary border me-1 mb-1" style={{ fontSize: '0.7rem', fontWeight: 'normal' }}>
-                                                            <strong className="text-dark">{zv.vestina?.id || zv.vestinaId}</strong> | {zv.nivo} | {zv.prioritet}
+                                                            <strong className="text-dark">{nazivVestine(zv.vestina?.id || zv.vestinaId)}</strong> | {formatirajEnum(zv.nivo)} | {formatirajEnum(zv.prioritet)}
                                                         </span>
                                                     ))}
                                                 </div>
@@ -575,7 +591,7 @@ function AgencijaDashboard() {
                                                                     </td>
                                                                     
                                                                     <td className="text-center align-middle">
-                                                                        <button className="btn btn-sm btn-dark fw-bold px-3">Kontaktiraj</button>
+                                                                        <button onClick={() => prikaziKontakt({ ...stud, email: formatirajEmail(stud.id) })} className="btn btn-sm btn-dark fw-bold px-3">Kontaktiraj</button>
                                                                     </td>
                                                                 </tr>
                                                             );
@@ -637,7 +653,7 @@ function AgencijaDashboard() {
                                                     📧 {student.email || student.id}
                                                 </div>
                                                 <div className="text-end" style={{ flex: '1' }}>
-                                                    <button className="btn btn-sm btn-outline-primary fw-bold px-4">
+                                                    <button onClick={() => setDetaljiStudenta(student)} className="btn btn-sm btn-outline-primary fw-bold px-4">
                                                         Pogledaj profil
                                                     </button>
                                                 </div>
@@ -649,6 +665,28 @@ function AgencijaDashboard() {
                         </div>
                     </div>
 
+                    {detaljiStudenta && (
+                        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+                            <div className="modal-dialog modal-dialog-centered">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">Profil kandidata</h5>
+                                        <button type="button" className="btn-close" onClick={() => setDetaljiStudenta(null)} aria-label="Zatvori"></button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <p className="mb-2"><strong>Ime i prezime:</strong> {detaljiStudenta.ime} {detaljiStudenta.prezime}</p>
+                                        <p className="mb-2"><strong>Email:</strong> {detaljiStudenta.email || formatirajEmail(detaljiStudenta.id)}</p>
+                                        <p className="mb-2"><strong>Nivo studija:</strong> {detaljiStudenta.nivoStudija || 'Nije navedeno'}</p>
+                                        <p className="mb-0"><strong>Status:</strong> {detaljiStudenta.traziZaposlenje ? 'Aktivno traži posao' : 'Nije aktivan kandidat'}</p>
+                                    </div>
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-outline-primary" onClick={() => prikaziKontakt(detaljiStudenta)}>Kontaktiraj</button>
+                                        <button type="button" className="btn btn-secondary" onClick={() => setDetaljiStudenta(null)}>Zatvori</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
         </div>

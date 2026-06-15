@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -6,6 +6,7 @@ function StudentDashboard() {
     const navigate = useNavigate();
     const [student, setStudent] = useState(null);
     const [predmeti, setPredmeti] = useState([]);
+    const [vestine, setVestine] = useState([]);
     
     // Stanja za Search i Ispite
     const [searchQuery, setSearchQuery] = useState('');
@@ -14,10 +15,12 @@ function StudentDashboard() {
     const [izabranPredmet, setIzabranPredmet] = useState(null); 
     const [ocena, setOcena] = useState(6);
     const [polaganja, setPolaganja] = useState([]);
+    const [otvorenaPolaganja, setOtvorenaPolaganja] = useState({});
     
     // NOVO: Dodato stanje za SVE oglase, pored preporučenih
     const [preporuceniOglasi, setPreporuceniOglasi] = useState([]);
     const [sviOglasi, setSviOglasi] = useState([]); 
+    const [detaljiOglasa, setDetaljiOglasa] = useState(null);
 
     // Stanja za Podešavanja profila
     const [prikaziPodesavanja, setPrikaziPodesavanja] = useState(false);
@@ -48,6 +51,10 @@ function StudentDashboard() {
         axios.get('http://localhost:8080/api/predmeti')
             .then(res => setPredmeti(res.data))
             .catch(err => console.error("Greška:", err));
+
+        axios.get('http://localhost:8080/api/vestine')
+            .then(res => setVestine(res.data))
+            .catch(err => console.error("Greška pri učitavanju veština:", err));
 
         axios.get(`http://localhost:8080/api/polaganja/student/${podaciStudenta.id}`)
             .then(res => setPolaganja(res.data))
@@ -170,7 +177,7 @@ function StudentDashboard() {
             
             const resPreporuke = await axios.get(`http://localhost:8080/api/studenti/${student.email}/preporuke`);
             setPreporuceniOglasi(resPreporuke.data);
-        } catch { alert("Greška pri čuvanju."); }
+        } catch (error) { alert(error.response?.data || "Greška pri čuvanju."); }
     };
 
     const handleImportPolaganja = async (e) => {
@@ -203,7 +210,7 @@ function StudentDashboard() {
             document.getElementById('importFileInput').value = ''; 
         } catch (error) {
             console.error("Greška pri importu polaganja:", error);
-            alert("Došlo je do greške prilikom importa. Provjerite da li je format fajla ispravan (JSON/XML).");
+            alert(error.response?.data || "Došlo je do greške prilikom importa. Provjerite da li je format fajla ispravan (JSON/XML).");
         } finally {
             setImportLoading(false);
         }
@@ -265,6 +272,36 @@ function StudentDashboard() {
 
     const izvuciIdOglasa = (oglas) => {
         return String(oglas?.oglasId || oglas?.oglasID || oglas?.id || oglas?._key || '').trim();
+    };
+
+    const nazivPredmeta = (predmetId) => {
+        const predmet = predmeti.find(p => p.id === predmetId || p._key === predmetId);
+        return predmet?.nazivPredmeta || predmetId;
+    };
+
+    const predmetZaPolaganje = (polaganje) => {
+        return predmeti.find(p => p.id === polaganje.predmetId || p._key === polaganje.predmetId) || null;
+    };
+
+    const nazivVestine = (vestinaId) => {
+        const vestina = vestine.find(v => v.id === vestinaId || v._key === vestinaId);
+        return vestina?.naziv || vestinaId;
+    };
+
+    const formatirajEnum = (vrednost) => {
+        if (!vrednost) return '';
+        return vrednost.charAt(0).toUpperCase() + vrednost.slice(1).toLowerCase();
+    };
+
+    const prikaziPrijavuNaOglas = (oglas) => {
+        alert(`Demo akcija: prijava za poziciju "${oglas.naslov}" bi ovde poslala zahtev agenciji.`);
+    };
+
+    const toggleDetaljePolaganja = (id) => {
+        setOtvorenaPolaganja(prev => ({
+            ...prev,
+            [id]: !prev[id]
+        }));
     };
 
     if (!student) return <div className="text-center mt-5">Učitavanje...</div>;
@@ -402,27 +439,56 @@ function StudentDashboard() {
                                     <thead className="table-success text-white position-sticky top-0" style={{ zIndex: 1 }}>
                                         <tr>
                                             <th>Predmet</th>
-                                            <th className="text-center">Ocena</th>
+                                            <th className="text-end" style={{ width: '150px' }}>Ocena</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {polaganja.length === 0 ? (
                                             <tr><td colSpan="2" className="text-center text-muted py-4">Nema evidentiranih ispita.</td></tr>
                                         ) : (
-                                            polaganja.map((p, index) => (
-                                                <tr key={p.id || index}>
-                                                    <td className="align-middle">{p.nazivPredmeta || p.predmetId}</td>
-                                                    <td className="text-center align-middle">
-                                                        <span className="badge bg-success rounded-pill me-2">{p.ocena}</span>
-                                                        <button 
-                                                            onClick={() => handleObrisiPolaganje(p.id)} 
-                                                            className="btn btn-sm btn-danger py-0 px-2 fw-bold" 
-                                                            title="Ukloni polaganje">
-                                                            X
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))
+                                            polaganja.map((p, index) => {
+                                                const predmet = predmetZaPolaganje(p);
+                                                const polaganjeId = p.id || `polaganje_${index}`;
+                                                const detaljiOtvoreni = !!otvorenaPolaganja[polaganjeId];
+                                                const vestinaIzPredmeta = predmet?.vestina?.naziv || nazivVestine(predmet?.vestina?.id) || 'Nije pronađena';
+
+                                                return (
+                                                    <Fragment key={polaganjeId}>
+                                                        <tr>
+                                                            <td className="align-middle">{p.nazivPredmeta || nazivPredmeta(p.predmetId)}</td>
+                                                            <td className="align-middle text-end" style={{ width: '150px' }}>
+                                                                <div className="d-flex justify-content-end align-items-center gap-2 text-nowrap">
+                                                                <span className="badge bg-success rounded-pill">{p.ocena}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => toggleDetaljePolaganja(polaganjeId)}
+                                                                    className="btn btn-sm btn-outline-success py-0 px-2"
+                                                                    aria-expanded={detaljiOtvoreni}
+                                                                    title={detaljiOtvoreni ? 'Sakrij detalje predmeta' : 'Prikaži veštinu i nivo predmeta'}>
+                                                                    {detaljiOtvoreni ? '▲' : '▼'}
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => handleObrisiPolaganje(p.id)} 
+                                                                    className="btn btn-sm btn-danger py-0 px-2 fw-bold" 
+                                                                    title="Ukloni polaganje">
+                                                                    X
+                                                                </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        {detaljiOtvoreni && (
+                                                            <tr key={`${polaganjeId}_detalji`}>
+                                                                <td colSpan="2" className="bg-light border-top-0">
+                                                                    <div className="d-flex flex-wrap gap-2 small text-secondary">
+                                                                        <span><strong>Veština:</strong> {vestinaIzPredmeta}</span>
+                                                                        <span><strong>Nivo:</strong> {formatirajEnum(predmet?.nivoKojiNudi) || 'Nije naveden'}</span>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </Fragment>
+                                                );
+                                            })
                                         )}
                                     </tbody>
                                 </table>
@@ -472,7 +538,7 @@ function StudentDashboard() {
                                                         <div className="mb-1">
                                                             {oglas.zahtevaneVestine && oglas.zahtevaneVestine.map((zv, zIdx) => (
                                                                 <span key={zIdx} className="badge bg-light text-secondary border me-1" style={{ fontSize: '0.7rem', fontWeight: 'normal' }}>
-                                                                    {zv.vestina?.id || zv.vestinaId}
+                                                                    {nazivVestine(zv.vestina?.id || zv.vestinaId)}
                                                                 </span>
                                                             ))}
                                                         </div>
@@ -481,7 +547,7 @@ function StudentDashboard() {
 
                                                     {/* Desno: Dugme */}
                                                     <div className="text-end ms-2">
-                                                        <button className="btn btn-sm btn-outline-secondary fw-bold px-3">Detalji</button>
+                                                        <button onClick={() => setDetaljiOglasa(oglas)} className="btn btn-sm btn-outline-secondary fw-bold px-3">Detalji</button>
                                                     </div>
 
                                                 </div>
@@ -560,7 +626,7 @@ function StudentDashboard() {
 
                                                     {/* Desno: Dugme (boja se menja u zavisnosti od statusa) */}
                                                     <div className="text-end ms-2">
-                                                        <button className={`btn btn-sm ${status.btnColor} fw-bold px-3`}>Prijavi se</button>
+                                                        <button onClick={() => prikaziPrijavuNaOglas(punOglasIzBaze || oglas)} className={`btn btn-sm ${status.btnColor} fw-bold px-3`}>Prijavi se</button>
                                                     </div>
 
                                                 </div>
@@ -572,6 +638,35 @@ function StudentDashboard() {
                         </div>
 
                     </div>
+                    {detaljiOglasa && (
+                        <div className="modal d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.45)' }}>
+                            <div className="modal-dialog modal-dialog-centered">
+                                <div className="modal-content">
+                                    <div className="modal-header">
+                                        <h5 className="modal-title">{detaljiOglasa.naslov}</h5>
+                                        <button type="button" className="btn-close" onClick={() => setDetaljiOglasa(null)} aria-label="Zatvori"></button>
+                                    </div>
+                                    <div className="modal-body">
+                                        <p className="text-muted">{detaljiOglasa.opis || 'Opis pozicije nije unet.'}</p>
+                                        <p className="mb-2"><strong>Plata:</strong> {detaljiOglasa.plata ? `${detaljiOglasa.plata} EUR` : 'Nije navedena'}</p>
+                                        <div>
+                                            <strong>Tražene veštine:</strong>
+                                            <div className="mt-2">
+                                                {(detaljiOglasa.zahtevaneVestine || []).map((zv, idx) => (
+                                                    <span key={idx} className="badge bg-light text-dark border me-1 mb-1">
+                                                        {nazivVestine(zv.vestina?.id || zv.vestinaId)} | {formatirajEnum(zv.nivo)} | {formatirajEnum(zv.prioritet)}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="modal-footer">
+                                        <button type="button" className="btn btn-secondary" onClick={() => setDetaljiOglasa(null)}>Zatvori</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
         </div>

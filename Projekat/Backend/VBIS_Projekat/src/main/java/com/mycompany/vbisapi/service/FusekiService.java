@@ -33,7 +33,9 @@ public class FusekiService {
 
     public List<RangiraniStudent> getRangListaStudenata(String oglasId, int stranica, int poStranici) {
         List<RangiraniStudent> lista = new ArrayList<>();
-        int offset = (stranica - 1) * poStranici;
+        int validnaStranica = normalizujStranicu(stranica);
+        int validnoPoStranici = normalizujPoStranici(poStranici);
+        int offset = (validnaStranica - 1) * validnoPoStranici;
         String oglasRef = rdfRef(oglasId);
 
         String sparqlQuery = MY_PREFIX + RDF_PREFIX +
@@ -56,7 +58,7 @@ public class FusekiService {
                 + "} GROUP BY ?studentID ?ime ?prezime " +
                 "HAVING (SUM(?score) > 0) " +
                 "ORDER BY DESC(?ukupniBodovi) " +
-                "LIMIT " + poStranici + " OFFSET " + offset;
+                "LIMIT " + validnoPoStranici + " OFFSET " + offset;
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(FUSEKI_QUERY_URL, sparqlQuery)) {
             ResultSet results = qexec.execSelect();
@@ -78,7 +80,9 @@ public class FusekiService {
         String studentID = studentEmail.replace("@", "_").replace(".", "_");
         String studentRef = rdfRef(studentID);
         List<PreporuceniOglas> preporuke = new ArrayList<>();
-        int offset = (stranica - 1) * poStranici;
+        int validnaStranica = normalizujStranicu(stranica);
+        int validnoPoStranici = normalizujPoStranici(poStranici);
+        int offset = (validnaStranica - 1) * validnoPoStranici;
 
         String sparqlQuery = MY_PREFIX + RDF_PREFIX +
                 "SELECT ?oglasID ?naslov (SUM(?score) AS ?ukupniBodovi) WHERE { " +
@@ -98,7 +102,7 @@ public class FusekiService {
                 "} GROUP BY ?oglasID ?naslov " +
                 "HAVING (SUM(?score) > 0) " +
                 "ORDER BY DESC(?ukupniBodovi) " +
-                "LIMIT " + poStranici + " OFFSET " + offset;
+                "LIMIT " + validnoPoStranici + " OFFSET " + offset;
 
         try (QueryExecution qexec = QueryExecutionFactory.sparqlService(FUSEKI_QUERY_URL, sparqlQuery)) {
             ResultSet results = qexec.execSelect();
@@ -301,5 +305,13 @@ public class FusekiService {
                 .replace("\t", "\\t");
 
         return "\"" + escaped + "\"";
+    }
+
+    private int normalizujStranicu(int stranica) {
+        return Math.max(stranica, 1);
+    }
+
+    private int normalizujPoStranici(int poStranici) {
+        return Math.min(Math.max(poStranici, 1), 100);
     }
 }

@@ -63,7 +63,10 @@ public class ImportService {
     
     private List<Oglas> obradiXml(MultipartFile fajl) throws Exception {
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        Schema schema = factory.newSchema(new ClassPathResource("schemas/oglas-schema.xsd").getFile());
+        Schema schema;
+        try (InputStream schemaStream = new ClassPathResource("schemas/oglas-schema.xsd").getInputStream()) {
+            schema = factory.newSchema(new StreamSource(schemaStream));
+        }
         Validator validator = schema.newValidator();
         validator.validate(new StreamSource(fajl.getInputStream()));
 
@@ -100,7 +103,10 @@ public class ImportService {
     
     private List<Polaganje> obradiPolaganjaXml(MultipartFile fajl) throws Exception {
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-        Schema schema = factory.newSchema(new ClassPathResource("schemas/polaganje-schema.xsd").getFile());
+        Schema schema;
+        try (InputStream schemaStream = new ClassPathResource("schemas/polaganje-schema.xsd").getInputStream()) {
+            schema = factory.newSchema(new StreamSource(schemaStream));
+        }
         Validator validator = schema.newValidator();
         validator.validate(new StreamSource(fajl.getInputStream()));
 

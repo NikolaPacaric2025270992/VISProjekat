@@ -116,9 +116,9 @@ public class ArangoService {
             BaseDocument doc = new BaseDocument();
             doc.setKey(p.getId());
             doc.addAttribute("id", p.getId());
-            doc.addAttribute("naziv", p.getNazivPredmeta());
+            doc.addAttribute("nazivPredmeta", p.getNazivPredmeta());
             doc.addAttribute("ects", p.getEcts());
-            doc.addAttribute("nivo", p.getNivoKojiNudi().toString());
+            doc.addAttribute("nivoKojiNudi", p.getNivoKojiNudi().toString());
             doc.addAttribute("vestinaId", p.getVestina().getId());
             doc.addAttribute("predavacId", p.getPredavacId());
 
@@ -361,7 +361,12 @@ public class ArangoService {
         String query = "FOR p IN predmeti " +
                        "  LET vId = HAS(p, 'vestinaId') ? p.vestinaId : p.vestina.id " +
                        "  LET v = FIRST(FOR vest IN vestine FILTER vest.id == vId OR vest._key == vId RETURN vest) " +
-                       "  RETURN MERGE(p, { id: HAS(p, 'id') ? p.id : p._key, vestina: v != null ? v : p.vestina })";
+                       "  RETURN MERGE(p, { " +
+                       "    id: HAS(p, 'id') ? p.id : p._key, " +
+                       "    nazivPredmeta: HAS(p, 'nazivPredmeta') ? p.nazivPredmeta : p.naziv, " +
+                       "    nivoKojiNudi: HAS(p, 'nivoKojiNudi') ? p.nivoKojiNudi : p.nivo, " +
+                       "    vestina: v != null ? v : p.vestina " +
+                       "  })";
         try {
             com.arangodb.ArangoCursor<Predmet> cursor = arangoDB.db(dbName).query(query, Predmet.class, null, null);
             List<Predmet> rezultati = cursor.asListRemaining();

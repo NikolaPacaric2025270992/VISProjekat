@@ -14,6 +14,6 @@
         "maximum": 10
       }
     },
-    "required": ["studentId", "predmetId", "ocena"]
+    "required": ["predmetId", "ocena"]
   }
 }

@@ -51,6 +51,8 @@ public class OglasController {
         try{
             oglasService.postaviOglas(o);
             return ResponseEntity.ok("Uspeh: Oglas '" + o.getNaslov() + "' je uspesno objavljen u oba sistema!");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greska pri postavljanju oglasa: " + e.getMessage());
         }

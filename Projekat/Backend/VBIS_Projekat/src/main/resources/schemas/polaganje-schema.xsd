@@ -7,7 +7,7 @@
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element name="id" type="xs:string" minOccurs="0"/>
-                            <xs:element name="studentId" type="xs:string"/>
+                            <xs:element name="studentId" type="xs:string" minOccurs="0"/>
                             <xs:element name="predmetId" type="xs:string"/>
                             <xs:element name="ocena">
                                 <xs:simpleType>

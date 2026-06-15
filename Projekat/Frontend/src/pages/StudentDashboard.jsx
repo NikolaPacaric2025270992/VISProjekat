@@ -263,6 +263,10 @@ function StudentDashboard() {
         }
     };
 
+    const izvuciIdOglasa = (oglas) => {
+        return String(oglas?.oglasId || oglas?.oglasID || oglas?.id || oglas?._key || '').trim();
+    };
+
     if (!student) return <div className="text-center mt-5">Učitavanje...</div>;
 
     return (
@@ -456,29 +460,33 @@ function StudentDashboard() {
                                     <div className="alert alert-light border text-center text-muted py-3">Trenutno nema otvorenih pozicija na tržištu.</div>
                                 ) : (
                                     <div className="d-flex flex-column">
-                                        {sviOglasi.map((oglas, idx) => (
-                                            <div key={oglas.id || idx} className="d-flex justify-content-between align-items-center p-3 mb-2 bg-white border rounded shadow-sm">
-                                                
-                                                {/* Levo: Naslov, Veštine i ID */}
-                                                <div className="d-flex flex-column" style={{ flex: '1' }}>
-                                                    <h6 className="fw-bold text-dark mb-1">{oglas.naslov}</h6>
-                                                    <div className="mb-1">
-                                                        {oglas.zahtevaneVestine && oglas.zahtevaneVestine.map((zv, zIdx) => (
-                                                            <span key={zIdx} className="badge bg-light text-secondary border me-1" style={{ fontSize: '0.7rem', fontWeight: 'normal' }}>
-                                                                {zv.vestina?.id || zv.vestinaId}
-                                                            </span>
-                                                        ))}
+                                        {sviOglasi.map((oglas, idx) => {
+                                            const idOglasa = izvuciIdOglasa(oglas);
+
+                                            return (
+                                                <div key={idOglasa || idx} className="d-flex justify-content-between align-items-center p-3 mb-2 bg-white border rounded shadow-sm">
+                                                    
+                                                    {/* Levo: Naslov, Veštine i ID */}
+                                                    <div className="d-flex flex-column" style={{ flex: '1' }}>
+                                                        <h6 className="fw-bold text-dark mb-1">{oglas.naslov}</h6>
+                                                        <div className="mb-1">
+                                                            {oglas.zahtevaneVestine && oglas.zahtevaneVestine.map((zv, zIdx) => (
+                                                                <span key={zIdx} className="badge bg-light text-secondary border me-1" style={{ fontSize: '0.7rem', fontWeight: 'normal' }}>
+                                                                    {zv.vestina?.id || zv.vestinaId}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                        <small className="text-muted" style={{ fontSize: '0.7rem' }}>ID: {idOglasa}</small>
                                                     </div>
-                                                    <small className="text-muted" style={{ fontSize: '0.7rem' }}>ID: {oglas.oglasID || oglas.id}</small>
-                                                </div>
 
-                                                {/* Desno: Dugme */}
-                                                <div className="text-end ms-2">
-                                                    <button className="btn btn-sm btn-outline-secondary fw-bold px-3">Detalji</button>
-                                                </div>
+                                                    {/* Desno: Dugme */}
+                                                    <div className="text-end ms-2">
+                                                        <button className="btn btn-sm btn-outline-secondary fw-bold px-3">Detalji</button>
+                                                    </div>
 
-                                            </div>
-                                        ))}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>
@@ -518,18 +526,14 @@ function StudentDashboard() {
                                             // 1. Izvučemo bodove
                                             const bodovi = oglas.bodovi || oglas.ukupniBodovi || 0;
                                             
-                                            // 2. ULTRA-SIGURNO TRAŽENJE OGLASA
-                                            const idPreporuke = String(oglas.oglasID || oglas.id || "");
+                                            // 2. Traženje punog oglasa preko istog ID-ja, bez substring poklapanja.
+                                            const idPreporuke = izvuciIdOglasa(oglas);
                                             
                                             const punOglasIzBaze = sviOglasi.find(o => {
-                                                // Hvatamo sve moguće nazive ID-ja koje baza može da vrati (Arango često koristi _key)
-                                                const idOglasa = String(o.oglasID || o.id || o._key || "");
-                                                
-                                                // KRITIČNO: Ako je string prazan, .includes("") vraća true za PRVI oglas na listi!
-                                                // Zato moramo da prekinemo pretragu ako ID nije validan (kraći od 5 karaktera).
-                                                if (idOglasa.length < 5 || idPreporuke.length < 5) return false;
-                                                
-                                                return idPreporuke.includes(idOglasa) || idOglasa.includes(idPreporuke);
+                                                const idOglasa = izvuciIdOglasa(o);
+                                                if (!idOglasa || !idPreporuke) return false;
+
+                                                return idPreporuke === idOglasa;
                                             });
 
                                             // Ako uspešno nađe pun oglas, uzima njegov broj veština (Marko ima 2). Ako ne, fallback je 1.
@@ -539,7 +543,7 @@ function StudentDashboard() {
                                             const status = odrediStatusPoklapanja(bodovi, brojTrazenihVestina);
 
                                             return (
-                                                <div key={oglas.id || idx} className={`d-flex justify-content-between align-items-center p-3 mb-2 ${status.bgColor} bg-opacity-10 border ${status.borderColor} border-opacity-25 rounded shadow-sm`}>
+                                                <div key={idPreporuke || idx} className={`d-flex justify-content-between align-items-center p-3 mb-2 ${status.bgColor} bg-opacity-10 border ${status.borderColor} border-opacity-25 rounded shadow-sm`}>
                                                     
                                                     {/* Levo: Naslov, Bodovi i Poruka */}
                                                     <div className="d-flex flex-column" style={{ flex: '1' }}>

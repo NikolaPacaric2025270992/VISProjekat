@@ -10,7 +10,7 @@
                             <xs:element name="naslov" type="xs:string"/>
                             <xs:element name="opis" type="xs:string" minOccurs="0"/>
                             <xs:element name="plata" type="xs:decimal"/>
-                            <xs:element name="agencijaId" type="xs:string"/>
+                            <xs:element name="agencijaId" type="xs:string" minOccurs="0"/>
                             <xs:element name="zahtevaneVestine" minOccurs="0" maxOccurs="unbounded">
                                 <xs:complexType>
                                     <xs:sequence>

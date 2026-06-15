@@ -146,8 +146,30 @@ function AgencijaDashboard() {
         setZahtevi(noviZahtevi);
     };
 
+    const imaDupliranihVestina = (listaZahteva) => {
+        const izabraneVestine = listaZahteva
+            .map(z => z.vestinaId)
+            .filter(Boolean);
+        return new Set(izabraneVestine).size !== izabraneVestine.length;
+    };
+
+    const prvaSlobodnaVestina = () => {
+        const zauzeteVestine = new Set(zahtevi.map(z => z.vestinaId).filter(Boolean));
+        return vestine.find(v => !zauzeteVestine.has(v.id))?.id || '';
+    };
+
+    const vestinaJeIzabranaUDrugomZahtevu = (vestinaId, trenutniIndex) => {
+        return zahtevi.some((z, index) => index !== trenutniIndex && z.vestinaId === vestinaId);
+    };
+
     const dodajNoviZahtev = () => {
-        setZahtevi([...zahtevi, { vestinaId: vestine[0]?.id || '', nivo: 'POCETNI', prioritet: 'NIZAK' }]);
+        const slobodnaVestina = prvaSlobodnaVestina();
+        if (!slobodnaVestina) {
+            alert("Sve dostupne veštine su već dodate u ovaj oglas.");
+            return;
+        }
+
+        setZahtevi([...zahtevi, { vestinaId: slobodnaVestina, nivo: 'POCETNI', prioritet: 'NIZAK' }]);
     };
 
     const ukloniZahtev = (index) => {
@@ -157,6 +179,11 @@ function AgencijaDashboard() {
 
     const handleDodajOglas = async (e) => {
         e.preventDefault();
+        if (imaDupliranihVestina(zahtevi)) {
+            alert("Ista veština ne može biti dodata više puta u jednom oglasu.");
+            return;
+        }
+
         const noviOglas = {
             id: `oglas_${Date.now()}`,
             naslov: naslovOglasa,
@@ -173,8 +200,8 @@ function AgencijaDashboard() {
             setOglasi([...oglasi, noviOglas]); 
             setNaslovOglasa('');
             setZahtevi([{ vestinaId: vestine[0]?.id || '', nivo: 'POCETNI', prioritet: 'NIZAK' }]); 
-        } catch {
-            alert("Greška pri dodavanju oglasa.");
+        } catch (error) {
+            alert(error.response?.data || "Greška pri dodavanju oglasa.");
         }
     };
 
@@ -201,7 +228,7 @@ function AgencijaDashboard() {
             document.getElementById('importFileInput').value = ''; 
         } catch (error) {
             console.error("Greška pri importu:", error);
-            alert("Došlo je do greške prilikom importa. Provjerite da li je format fajla ispravan (JSON/XML).");
+            alert(error.response?.data || "Došlo je do greške prilikom importa. Provjerite da li je format fajla ispravan (JSON/XML).");
         } finally {
             setImportLoading(false);
         }
@@ -383,7 +410,7 @@ function AgencijaDashboard() {
 
                                         <div className="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
                                             <h6 className="mb-0 fw-bold text-secondary">Potrebne veštine</h6>
-                                            <button type="button" onClick={dodajNoviZahtev} className="btn btn-sm btn-outline-primary">+ Dodaj veštinu</button>
+                                            <button type="button" onClick={dodajNoviZahtev} className="btn btn-sm btn-outline-primary" disabled={zahtevi.length >= vestine.length}>+ Dodaj veštinu</button>
                                         </div>
                                         
                                         {zahtevi.map((zahtev, index) => (
@@ -397,7 +424,7 @@ function AgencijaDashboard() {
                                                     <select className="form-select form-select-sm" value={zahtev.vestinaId} onChange={(e) => handleZahtevChange(index, 'vestinaId', e.target.value)}>
                                                         <option value="" disabled>Izaberite veštinu...</option>
                                                         {vestine.map(v => (
-                                                            <option key={v.id} value={v.id}>{v.naziv}</option>
+                                                            <option key={v.id} value={v.id} disabled={vestinaJeIzabranaUDrugomZahtevu(v.id, index)}>{v.naziv}</option>
                                                         ))}
                                                     </select>
                                                 </div>

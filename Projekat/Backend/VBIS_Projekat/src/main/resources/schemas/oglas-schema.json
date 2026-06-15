@@ -27,6 +27,6 @@
         }
       }
     },
-    "required": ["id", "naslov", "plata", "agencijaId"]
+    "required": ["id", "naslov", "plata"]
   }
 }
